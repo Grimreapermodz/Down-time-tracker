@@ -425,6 +425,7 @@
   let pauseType    = null;
   let tickInterval = null;
   let entries      = [];
+  let startedAt    = null; // wall-clock time when Start was pressed
 
   // ── DOM ────────────────────────────────────────────────────
   const lineInput  = document.getElementById('line-number');
@@ -454,7 +455,7 @@
     try {
       const raw = localStorage.getItem('dt_entries');
       if (raw) {
-        entries = JSON.parse(raw).map(e => ({ ...e, ts: new Date(e.ts) }));
+        entries = JSON.parse(raw).map(e => ({ ...e, ts: new Date(e.ts), startedAt: e.startedAt ? new Date(e.startedAt) : null }));
         renderLog();
       }
     } catch(e) {}
@@ -507,7 +508,7 @@
       setTimeout(() => lineInput.style.borderColor = '', 1000);
       return;
     }
-    state = 'running'; segStart = Date.now();
+    state = 'running'; segStart = Date.now(); startedAt = new Date();
     tickInterval = setInterval(tick, 250);
     lineInput.disabled = true;
     btnStart.disabled = true; btnPause.disabled = false; btnStop.disabled = false; btnReset.disabled = true;
@@ -549,7 +550,7 @@
 
   function resetTimer() {
     clearInterval(tickInterval);
-    downElapsed = 0; pauseElapsed = 0; segStart = null; pauseType = null; state = 'idle';
+    downElapsed = 0; pauseElapsed = 0; segStart = null; pauseType = null; state = 'idle'; startedAt = null;
     dispDown.textContent = '00:00:00'; dispPause.textContent = '00:00:00'; dispTotal.textContent = '00:00:00';
     dispDown.className = 'timer-block-value dim'; dispPause.className = 'timer-block-value dim';
     lineInput.disabled = false;
@@ -563,7 +564,7 @@
     entries.unshift({
       line: lineInput.value.trim(), issue: issueNotes.value.trim(),
       down: downElapsed, pause: pauseElapsed, total: downElapsed + pauseElapsed,
-      pType: pauseType, ts: new Date()
+      pType: pauseType, startedAt: startedAt, ts: new Date()
     });
     saveEntriesToStorage();
     renderLog(); resetTimer();
@@ -594,6 +595,12 @@
     logList.innerHTML = entries.map(e => `
       <div class="log-entry">
         <div class="log-entry-top"><span class="log-line">Line ${escHtml(e.line)}</span></div>
+        <div class="log-timestamp" style="margin-top:0; margin-bottom:10px;">
+          <span style="color:#6b7280;">Started:</span> ${e.startedAt ? e.startedAt.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '—'}
+          &nbsp;→&nbsp;
+          <span style="color:#6b7280;">Stopped:</span> ${e.ts.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}
+          &nbsp;&nbsp;<span style="color:#3d4251;">${e.ts.toLocaleDateString([], {month:'short',day:'numeric'})}</span>
+        </div>
         <div class="log-times">
           <div class="log-time-chip chip-down">
             <span class="log-time-chip-label">Downtime</span>
@@ -610,7 +617,6 @@
         </div>
         ${ptLabel(e.pType)}
         <div class="log-issue">${e.issue ? escHtml(e.issue) : '<em>No issue notes recorded</em>'}</div>
-        <div class="log-timestamp">${e.ts.toLocaleString()}</div>
       </div>
     `).join('');
   }
