@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="theme-color" content="#0f1117"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="Downtime"/>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="apple-touch-icon" href="icon-192.svg"/>
+  <title>Line Downtime Tracker</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0f1117;
+      --surface: #1a1d27;
+      --border:  #2e3347;
+      --accent:  #f5a623;
+      --danger:  #e84444;
+      --blue:    #4a90d9;
+      --purple:  #9b6dff;
+      --text:    #e8eaf0;
+      --muted:   #6b7280;
+      --mono: ui-monospace, 'Cascadia Code', 'Segoe UI Mono', 'Roboto Mono', Menlo, monospace;
+      --sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 16px env(safe-area-inset-bottom, 40px);
+      padding-bottom: 40px;
+    }
+
+    /* ── HEADER ── */
+    header {
+      width: 100%;
+      max-width: 640px;
+      padding: 28px 0 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 32px;
+    }
+    .eyebrow {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    header h1 {
+      font-family: var(--mono);
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+
+    /* ── CARD ── */
+    .card {
+      width: 100%;
+      max-width: 640px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 28px 28px 24px;
+      margin-bottom: 24px;
+    }
+
+    /* ── FIELDS ── */
+    .field { margin-bottom: 20px; }
+    label {
+      display: block;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    input[type="text"], textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 15px;
+      padding: 10px 14px;
+      outline: none;
+      transition: border-color 0.15s;
+      -webkit-appearance: none;
+    }
+    input[type="text"]:focus, textarea:focus { border-color: var(--accent); }
+    textarea { resize: vertical; min-height: 90px; }
+    input:disabled, textarea:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    /* ── STATUS ── */
+    .status-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+    .pill {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 99px;
+    }
+    .pill.idle    { background: #1f2333; color: var(--muted); }
+    .pill.running { background: #3d2f0e; color: var(--accent); }
+    .pill.paused  { background: #1e2a3a; color: var(--blue); }
+    .pill.stopped { background: #2e1010; color: var(--danger); }
+
+    /* ── TIMERS ── */
+    .timers-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .timer-block {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 12px 14px;
+    }
+    .timer-block-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .timer-block-value {
+      font-family: var(--mono);
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      line-height: 1;
+      color: var(--text);
+      transition: color 0.2s;
+    }
+    .timer-block-value.active-down  { color: var(--accent); }
+    .timer-block-value.active-pause { color: var(--blue); }
+    .timer-block-value.dim          { color: #3a3f52; }
+
+    .timer-block.total-block {
+      grid-column: span 2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+    }
+    .total-block .timer-block-label { margin-bottom: 0; }
+    .total-block .timer-block-value { font-size: 20px; color: var(--muted); }
+
+    /* ── PAUSE PANEL ── */
+    .pause-panel {
+      background: #111522;
+      border: 1px solid #263050;
+      border-radius: 5px;
+      padding: 16px;
+      margin-bottom: 18px;
+      display: none;
+    }
+    .pause-panel-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 12px;
+    }
+    .pause-type-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn-pause-type {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      border-radius: 4px;
+      padding: 10px 18px;
+      cursor: pointer;
+      transition: all 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-pause-type:hover         { border-color: var(--blue); color: var(--blue); }
+    .btn-pause-type.selected-dim  { border-color: var(--purple); color: var(--purple); background: #1e1530; }
+    .btn-pause-type.selected-qual { border-color: var(--blue);   color: var(--blue);   background: #0f1f35; }
+
+    /* ── BUTTONS ── */
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border: none;
+      border-radius: 4px;
+      padding: 13px 20px;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .btn:active   { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+    .btn-start  { background: var(--accent); color: #111; }
+    .btn-pause  { background: var(--blue);   color: #fff; }
+    .btn-resume { background: var(--accent); color: #111; }
+    .btn-stop   { background: var(--danger); color: #fff; }
+    .btn-save   { background: #2b6cb0;       color: #fff; }
+    .btn-reset  { background: var(--border); color: var(--muted); }
+
+    /* ── LOG ── */
+    .log-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .log-header h2 {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .log-count { font-family: var(--mono); font-size: 11px; color: var(--accent); }
+    .log-empty {
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+      padding: 24px 0;
+      font-family: var(--mono);
+    }
+    .log-entry {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+    }
+    .log-entry-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .log-line { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--accent); }
+    .log-times { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+    .log-time-chip {
+      display: flex;
+      flex-direction: column;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 7px 12px;
+      flex: 1;
+      min-width: 90px;
+    }
+    .log-time-chip-label {
+      font-family: var(--mono);
+      font-size: 8px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .log-time-chip-value { font-family: var(--mono); font-size: 17px; font-weight: 700; }
+    .chip-down  .log-time-chip-value { color: var(--danger); }
+    .chip-pause .log-time-chip-value { color: var(--blue); }
+    .chip-total .log-time-chip-value { color: var(--muted); }
+
+    .log-pause-type {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 99px;
+      margin-bottom: 8px;
+    }
+    .pt-dimensional { background: #1e1530; color: var(--purple); border: 1px solid var(--purple); }
+    .pt-quality     { background: #0f1f35; color: var(--blue);   border: 1px solid var(--blue); }
+
+    .log-issue { font-size: 13px; color: var(--muted); line-height: 1.5; }
+    .log-issue em { font-style: normal; color: #4b5260; }
+    .log-timestamp { font-family: var(--mono); font-size: 10px; color: #3d4251; margin-top: 8px; }
+
+    .btn-clear {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 4px;
+      padding: 4px 10px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .btn-clear:hover { border-color: var(--danger); color: var(--danger); }
+
+    /* ── UPDATE BANNER ── */
+    #update-banner {
+      display: none;
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #2b6cb0;
+      color: #fff;
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      z-index: 999;
+      white-space: nowrap;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+
+    @media (max-width: 480px) {
+      .timer-block-value { font-size: 22px; }
+      .card { padding: 20px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="update-banner" onclick="applyUpdate()">⬆ Update available — tap to reload</div>
+
+<header>
+  <div class="eyebrow">Production Floor</div>
+  <h1>Line Downtime Tracker</h1>
+</header>
+
+<div class="card">
+  <div class="field">
+    <label for="line-number">Line Number</label>
+    <input type="text" id="line-number" placeholder="e.g. Line 4, Station B" autocomplete="off"/>
+  </div>
+
+  <div class="status-row">
+    <span class="pill idle" id="status-pill">Idle</span>
+  </div>
+
+  <div class="timers-grid">
+    <div class="timer-block">
+      <div class="timer-block-label">Downtime</div>
+      <div class="timer-block-value dim" id="disp-down">00:00:00</div>
+    </div>
+    <div class="timer-block">
+      <div class="timer-block-label">Paused</div>
+      <div class="timer-block-value dim" id="disp-pause">00:00:00</div>
+    </div>
+    <div class="timer-block total-block">
+      <div class="timer-block-label">Total Time</div>
+      <div class="timer-block-value" id="disp-total">00:00:00</div>
+    </div>
+  </div>
+
+  <div class="pause-panel" id="pause-panel">
+    <div class="pause-panel-label">Pause reason</div>
+    <div class="pause-type-row">
+      <button class="btn-pause-type" id="btn-dim"  onclick="selectPauseType('dimensional')">◈ Dimensional</button>
+      <button class="btn-pause-type" id="btn-qual" onclick="selectPauseType('quality')">◉ Quality</button>
+    </div>
+  </div>
+
+  <div class="btn-row" style="margin-bottom: 20px;">
+    <button class="btn btn-start"  id="btn-start"  onclick="startTimer()">▶ Start</button>
+    <button class="btn btn-pause"  id="btn-pause"  onclick="pauseTimer()"  disabled>⏸ Pause</button>
+    <button class="btn btn-resume" id="btn-resume" onclick="resumeTimer()" disabled style="display:none;">▶ Resume</button>
+    <button class="btn btn-stop"   id="btn-stop"   onclick="stopTimer()"   disabled>■ Stop</button>
+    <button class="btn btn-reset"  id="btn-reset"  onclick="resetTimer()"  disabled>↺ Reset</button>
+  </div>
+
+  <div id="issue-block" style="display:none;">
+    <div class="field">
+      <label for="issue-notes">What went wrong?</label>
+      <textarea id="issue-notes" placeholder="Describe the issue — jam, mechanical fault, quality hold, etc."></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-save" onclick="saveEntry()">✓ Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="log-header">
+    <h2>Downtime Log</h2>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span class="log-count" id="log-count"></span>
+      <button class="btn-clear" onclick="clearLog()">Clear</button>
+    </div>
+  </div>
+  <div id="log-list">
+    <div class="log-empty" id="log-empty">No entries yet. Start a timer to log downtime.</div>
+  </div>
+</div>
+
+<script>
+  // ── STATE ──────────────────────────────────────────────────
+  let state        = 'idle';
+  let downElapsed  = 0;
+  let pauseElapsed = 0;
+  let segStart     = null;
+  let pauseType    = null;
+  let tickInterval = null;
+  let entries      = [];
+  let startedAt    = null; // wall-clock time when Start was pressed
+
+  // ── DOM ────────────────────────────────────────────────────
+  const lineInput  = document.getElementById('line-number');
+  const pill       = document.getElementById('status-pill');
+  const dispDown   = document.getElementById('disp-down');
+  const dispPause  = document.getElementById('disp-pause');
+  const dispTotal  = document.getElementById('disp-total');
+  const pausePanel = document.getElementById('pause-panel');
+  const issueBlock = document.getElementById('issue-block');
+  const issueNotes = document.getElementById('issue-notes');
+  const btnStart   = document.getElementById('btn-start');
+  const btnPause   = document.getElementById('btn-pause');
+  const btnResume  = document.getElementById('btn-resume');
+  const btnStop    = document.getElementById('btn-stop');
+  const btnReset   = document.getElementById('btn-reset');
+  const btnDim     = document.getElementById('btn-dim');
+  const btnQual    = document.getElementById('btn-qual');
+  const logList    = document.getElementById('log-list');
+  const logEmpty   = document.getElementById('log-empty');
+  const logCount   = document.getElementById('log-count');
+
+  // ── PERSISTENCE ───────────────────────────────────────────
+  function saveEntriesToStorage() {
+    try { localStorage.setItem('dt_entries', JSON.stringify(entries)); } catch(e) {}
+  }
+  function loadEntriesFromStorage() {
+    try {
+      const raw = localStorage.getItem('dt_entries');
+      if (raw) {
+        entries = JSON.parse(raw).map(e => ({ ...e, ts: new Date(e.ts), startedAt: e.startedAt ? new Date(e.startedAt) : null }));
+        renderLog();
+      }
+    } catch(e) {}
+  }
+  loadEntriesFromStorage();
+
+  // ── HELPERS ───────────────────────────────────────────────
+  function fmt(ms) {
+    const s  = Math.floor(ms / 1000);
+    const h  = Math.floor(s / 3600);
+    const m  = Math.floor((s % 3600) / 60);
+    const sc = s % 60;
+    return [h, m, sc].map(v => String(v).padStart(2, '0')).join(':');
+  }
+
+  function tick() {
+    const now = Date.now();
+    if (state === 'running') {
+      const d = downElapsed + (now - segStart);
+      dispDown.textContent  = fmt(d);
+      dispTotal.textContent = fmt(d + pauseElapsed);
+    } else if (state === 'paused') {
+      const p = pauseElapsed + (now - segStart);
+      dispPause.textContent = fmt(p);
+      dispTotal.textContent = fmt(downElapsed + p);
+    }
+  }
+
+  function snapshotSegment() {
+    if (segStart === null) return;
+    const now = Date.now();
+    if (state === 'running') downElapsed  += now - segStart;
+    if (state === 'paused')  pauseElapsed += now - segStart;
+    segStart = null;
+  }
+
+  function setPill(s, text) { pill.textContent = text; pill.className = 'pill ' + s; }
+
+  function selectPauseType(type) {
+    pauseType = type;
+    btnDim.className  = type === 'dimensional' ? 'btn-pause-type selected-dim'  : 'btn-pause-type';
+    btnQual.className = type === 'quality'     ? 'btn-pause-type selected-qual' : 'btn-pause-type';
+  }
+
+  // ── ACTIONS ───────────────────────────────────────────────
+  function startTimer() {
+    if (!lineInput.value.trim()) {
+      lineInput.focus();
+      lineInput.style.borderColor = '#e84444';
+      setTimeout(() => lineInput.style.borderColor = '', 1000);
+      return;
+    }
+    state = 'running'; segStart = Date.now(); startedAt = new Date();
+    tickInterval = setInterval(tick, 250);
+    lineInput.disabled = true;
+    btnStart.disabled = true; btnPause.disabled = false; btnStop.disabled = false; btnReset.disabled = true;
+    btnResume.style.display = 'none'; btnPause.style.display = '';
+    dispDown.className = 'timer-block-value active-down';
+    dispPause.className = 'timer-block-value dim';
+    pausePanel.style.display = 'none'; issueBlock.style.display = 'none';
+    setPill('running', 'Running');
+  }
+
+  function pauseTimer() {
+    snapshotSegment(); state = 'paused'; segStart = Date.now();
+    btnPause.style.display = 'none'; btnResume.style.display = ''; btnResume.disabled = false;
+    btnStop.disabled = false; pausePanel.style.display = 'block';
+    pauseType = null; btnDim.className = 'btn-pause-type'; btnQual.className = 'btn-pause-type';
+    dispDown.className = 'timer-block-value dim'; dispPause.className = 'timer-block-value active-pause';
+    setPill('paused', 'Paused');
+  }
+
+  function resumeTimer() {
+    snapshotSegment(); state = 'running'; segStart = Date.now();
+    btnResume.style.display = 'none'; btnPause.style.display = ''; btnPause.disabled = false;
+    pausePanel.style.display = 'none';
+    dispDown.className = 'timer-block-value active-down'; dispPause.className = 'timer-block-value dim';
+    setPill('running', 'Running');
+  }
+
+  function stopTimer() {
+    snapshotSegment(); clearInterval(tickInterval); state = 'stopped';
+    dispDown.textContent  = fmt(downElapsed);
+    dispPause.textContent = fmt(pauseElapsed);
+    dispTotal.textContent = fmt(downElapsed + pauseElapsed);
+    dispDown.className = 'timer-block-value'; dispPause.className = 'timer-block-value';
+    btnPause.disabled = true; btnResume.disabled = true; btnStop.disabled = true; btnReset.disabled = false;
+    btnPause.style.display = 'none'; btnResume.style.display = 'none';
+    pausePanel.style.display = 'none'; issueBlock.style.display = 'block';
+    issueNotes.focus(); setPill('stopped', 'Stopped');
+  }
+
+  function resetTimer() {
+    clearInterval(tickInterval);
+    downElapsed = 0; pauseElapsed = 0; segStart = null; pauseType = null; state = 'idle'; startedAt = null;
+    dispDown.textContent = '00:00:00'; dispPause.textContent = '00:00:00'; dispTotal.textContent = '00:00:00';
+    dispDown.className = 'timer-block-value dim'; dispPause.className = 'timer-block-value dim';
+    lineInput.disabled = false;
+    btnStart.disabled = false; btnPause.disabled = true; btnStop.disabled = true; btnReset.disabled = true;
+    btnPause.style.display = ''; btnResume.style.display = 'none';
+    pausePanel.style.display = 'none'; issueBlock.style.display = 'none'; issueNotes.value = '';
+    setPill('idle', 'Idle');
+  }
+
+  function saveEntry() {
+    entries.unshift({
+      line: lineInput.value.trim(), issue: issueNotes.value.trim(),
+      down: downElapsed, pause: pauseElapsed, total: downElapsed + pauseElapsed,
+      pType: pauseType, startedAt: startedAt, ts: new Date()
+    });
+    saveEntriesToStorage();
+    renderLog(); resetTimer();
+  }
+
+  // ── LOG ───────────────────────────────────────────────────
+  function clearLog() {
+    if (!entries.length) return;
+    if (confirm('Clear all log entries?')) { entries = []; saveEntriesToStorage(); renderLog(); }
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function ptLabel(pt) {
+    if (pt === 'dimensional') return '<span class="log-pause-type pt-dimensional">◈ Dimensional</span>';
+    if (pt === 'quality')     return '<span class="log-pause-type pt-quality">◉ Quality</span>';
+    return '';
+  }
+
+  function renderLog() {
+    if (!entries.length) {
+      logList.innerHTML = ''; logList.appendChild(logEmpty); logCount.textContent = ''; return;
+    }
+    logEmpty.remove();
+    logCount.textContent = entries.length + (entries.length === 1 ? ' entry' : ' entries');
+    logList.innerHTML = entries.map(e => `
+      <div class="log-entry">
+        <div class="log-entry-top"><span class="log-line">Line ${escHtml(e.line)}</span></div>
+        <div class="log-timestamp" style="margin-top:0; margin-bottom:10px;">
+          <span style="color:#6b7280;">Started:</span> ${e.startedAt ? e.startedAt.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '—'}
+          &nbsp;→&nbsp;
+          <span style="color:#6b7280;">Stopped:</span> ${e.ts.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}
+          &nbsp;&nbsp;<span style="color:#3d4251;">${e.ts.toLocaleDateString([], {month:'short',day:'numeric'})}</span>
+        </div>
+        <div class="log-times">
+          <div class="log-time-chip chip-down">
+            <span class="log-time-chip-label">Downtime</span>
+            <span class="log-time-chip-value">${fmt(e.down)}</span>
+          </div>
+          <div class="log-time-chip chip-pause">
+            <span class="log-time-chip-label">Paused</span>
+            <span class="log-time-chip-value">${fmt(e.pause)}</span>
+          </div>
+          <div class="log-time-chip chip-total">
+            <span class="log-time-chip-label">Total</span>
+            <span class="log-time-chip-value">${fmt(e.total)}</span>
+          </div>
+        </div>
+        ${ptLabel(e.pType)}
+        <div class="log-issue">${e.issue ? escHtml(e.issue) : '<em>No issue notes recorded</em>'}</div>
+      </div>
+    `).join('');
+  }
+
+  // ── SERVICE WORKER ────────────────────────────────────────
+  let swReg = null;
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').then(reg => {
+      swReg = reg;
+      reg.addEventListener('updatefound', () => {
+        const nw = reg.installing;
+        nw.addEventListener('statechange', () => {
+          if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+            document.getElementById('update-banner').style.display = 'block';
+          }
+        });
+      });
+    });
+    navigator.serviceWorker.addEventListener('controllerchange', () => location.reload());
+  }
+
+  function applyUpdate() {
+    if (swReg && swReg.waiting) {
+      swReg.waiting.postMessage({ type: 'SKIP_WAITING' });
+    }
+  }
+</script>
+</body>
+</html>
