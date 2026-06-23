@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <rect width="192" height="192" rx="40" fill="#0f1117"/>
+  <circle cx="96" cy="96" r="62" fill="none" stroke="#2e3347" stroke-width="8"/>
+  <circle cx="96" cy="96" r="62" fill="none" stroke="#f5a623" stroke-width="8"
+    stroke-dasharray="195 195" stroke-dashoffset="49" stroke-linecap="round"
+    transform="rotate(-90 96 96)"/>
+  <circle cx="96" cy="96" r="10" fill="#f5a623"/>
+  <!-- clock hand -->
+  <line x1="96" y1="96" x2="96" y2="48" stroke="#f5a623" stroke-width="6" stroke-linecap="round"/>
+  <line x1="96" y1="96" x2="122" y2="108" stroke="#e8eaf0" stroke-width="4" stroke-linecap="round"/>
+</svg>
