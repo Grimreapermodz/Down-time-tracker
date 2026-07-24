@@ -502,20 +502,13 @@
 
   // ── ACTIONS ───────────────────────────────────────────────
   function startTimer() {
-    if (!lineInput.value.trim()) {
-      lineInput.focus();
-      lineInput.style.borderColor = '#e84444';
-      setTimeout(() => lineInput.style.borderColor = '', 1000);
-      return;
-    }
     state = 'running'; segStart = Date.now(); startedAt = new Date();
     tickInterval = setInterval(tick, 250);
-    lineInput.disabled = true;
     btnStart.disabled = true; btnPause.disabled = false; btnStop.disabled = false; btnReset.disabled = true;
     btnResume.style.display = 'none'; btnPause.style.display = '';
     dispDown.className = 'timer-block-value active-down';
     dispPause.className = 'timer-block-value dim';
-    pausePanel.style.display = 'none'; issueBlock.style.display = 'none';
+    pausePanel.style.display = 'none'; issueBlock.style.display = 'block';
     setPill('running', 'Running');
   }
 
@@ -553,7 +546,6 @@
     downElapsed = 0; pauseElapsed = 0; segStart = null; pauseType = null; state = 'idle'; startedAt = null;
     dispDown.textContent = '00:00:00'; dispPause.textContent = '00:00:00'; dispTotal.textContent = '00:00:00';
     dispDown.className = 'timer-block-value dim'; dispPause.className = 'timer-block-value dim';
-    lineInput.disabled = false;
     btnStart.disabled = false; btnPause.disabled = true; btnStop.disabled = true; btnReset.disabled = true;
     btnPause.style.display = ''; btnResume.style.display = 'none';
     pausePanel.style.display = 'none'; issueBlock.style.display = 'none'; issueNotes.value = '';
