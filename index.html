@@ -22,6 +22,7 @@
       --danger:  #e84444;
       --blue:    #4a90d9;
       --purple:  #9b6dff;
+      --green:   #2ecc71;
       --text:    #e8eaf0;
       --muted:   #6b7280;
       --mono: ui-monospace, 'Cascadia Code', 'Segoe UI Mono', 'Roboto Mono', Menlo, monospace;
@@ -41,7 +42,6 @@
       padding-bottom: 40px;
     }
 
-    /* ── HEADER ── */
     header {
       width: 100%;
       max-width: 640px;
@@ -65,7 +65,6 @@
       color: var(--text);
     }
 
-    /* ── CARD ── */
     .card {
       width: 100%;
       max-width: 640px;
@@ -76,7 +75,6 @@
       margin-bottom: 24px;
     }
 
-    /* ── FIELDS ── */
     .field { margin-bottom: 20px; }
     label {
       display: block;
@@ -101,7 +99,7 @@
       -webkit-appearance: none;
     }
     input[type="text"]:focus, textarea:focus { border-color: var(--accent); }
-    textarea { resize: vertical; min-height: 90px; }
+    textarea { resize: vertical; min-height: 80px; }
     input:disabled, textarea:disabled { opacity: 0.35; cursor: not-allowed; }
 
     /* ── STATUS ── */
@@ -247,6 +245,8 @@
       padding: 24px 0;
       font-family: var(--mono);
     }
+
+    /* ── LOG ENTRY ── */
     .log-entry {
       background: var(--bg);
       border: 1px solid var(--border);
@@ -254,13 +254,52 @@
       padding: 14px 16px;
       margin-bottom: 10px;
     }
-    .log-entry-top {
+    .log-entry-header {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      margin-bottom: 10px;
+      justify-content: space-between;
+      margin-bottom: 8px;
     }
-    .log-line { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--accent); }
+    .log-timestamp {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: #3d4251;
+    }
+    .btn-edit {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 4px;
+      padding: 3px 9px;
+      cursor: pointer;
+      transition: all 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-edit:hover       { border-color: var(--accent); color: var(--accent); }
+    .btn-edit.is-editing  { border-color: var(--green);  color: var(--green); }
+
+    /* view mode */
+    .log-line-view {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    /* edit mode fields */
+    .log-edit-fields { display: none; margin-bottom: 10px; }
+    .log-edit-fields .field { margin-bottom: 12px; }
+    .log-edit-fields label { font-size: 9px; }
+    .log-edit-fields input[type="text"],
+    .log-edit-fields textarea { font-size: 14px; padding: 8px 12px; }
+    .log-edit-fields textarea { min-height: 60px; }
+
+    /* time chips row */
     .log-times { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
     .log-time-chip {
       display: flex;
@@ -285,6 +324,26 @@
     .chip-pause .log-time-chip-value { color: var(--blue); }
     .chip-total .log-time-chip-value { color: var(--muted); }
 
+    /* editable time chips */
+    .log-time-chip.editable { cursor: pointer; border-color: #3a3f52; transition: border-color 0.15s; }
+    .log-time-chip.editable:hover { border-color: var(--accent); }
+    .log-time-chip input[type="text"] {
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      border-radius: 0;
+      padding: 2px 0;
+      font-family: var(--mono);
+      font-size: 15px;
+      font-weight: 700;
+      width: 100%;
+      color: var(--text);
+    }
+    .chip-down  input { color: var(--danger); }
+    .chip-pause input { color: var(--blue); }
+    .chip-total input { color: var(--muted); }
+    .log-time-chip input:focus { border-bottom-color: var(--accent); outline: none; }
+
     .log-pause-type {
       font-family: var(--mono);
       font-size: 10px;
@@ -298,9 +357,43 @@
     .pt-dimensional { background: #1e1530; color: var(--purple); border: 1px solid var(--purple); }
     .pt-quality     { background: #0f1f35; color: var(--blue);   border: 1px solid var(--blue); }
 
-    .log-issue { font-size: 13px; color: var(--muted); line-height: 1.5; }
-    .log-issue em { font-style: normal; color: #4b5260; }
-    .log-timestamp { font-family: var(--mono); font-size: 10px; color: #3d4251; margin-top: 8px; }
+    .log-issue-view { font-size: 13px; color: var(--muted); line-height: 1.5; }
+    .log-issue-view em { font-style: normal; color: #4b5260; }
+
+    /* edit save/cancel row */
+    .log-edit-actions {
+      display: none;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .btn-log-save {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: var(--green);
+      color: #111;
+      border: none;
+      border-radius: 4px;
+      padding: 8px 16px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-log-cancel {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: none;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 8px 16px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
 
     .btn-clear {
       font-family: var(--mono);
@@ -398,7 +491,7 @@
       <textarea id="issue-notes" placeholder="Describe the issue — jam, mechanical fault, quality hold, etc."></textarea>
     </div>
     <div class="btn-row">
-      <button class="btn btn-save" onclick="saveEntry()">✓ Save Entry</button>
+      <button class="btn btn-save" id="btn-save" onclick="saveEntry()" disabled>✓ Save Entry</button>
     </div>
   </div>
 </div>
@@ -425,7 +518,7 @@
   let pauseType    = null;
   let tickInterval = null;
   let entries      = [];
-  let startedAt    = null; // wall-clock time when Start was pressed
+  let startedAt    = null;
 
   // ── DOM ────────────────────────────────────────────────────
   const lineInput  = document.getElementById('line-number');
@@ -441,6 +534,7 @@
   const btnResume  = document.getElementById('btn-resume');
   const btnStop    = document.getElementById('btn-stop');
   const btnReset   = document.getElementById('btn-reset');
+  const btnSave    = document.getElementById('btn-save');
   const btnDim     = document.getElementById('btn-dim');
   const btnQual    = document.getElementById('btn-qual');
   const logList    = document.getElementById('log-list');
@@ -455,7 +549,11 @@
     try {
       const raw = localStorage.getItem('dt_entries');
       if (raw) {
-        entries = JSON.parse(raw).map(e => ({ ...e, ts: new Date(e.ts), startedAt: e.startedAt ? new Date(e.startedAt) : null }));
+        entries = JSON.parse(raw).map(e => ({
+          ...e,
+          ts: new Date(e.ts),
+          startedAt: e.startedAt ? new Date(e.startedAt) : null
+        }));
         renderLog();
       }
     } catch(e) {}
@@ -469,6 +567,15 @@
     const m  = Math.floor((s % 3600) / 60);
     const sc = s % 60;
     return [h, m, sc].map(v => String(v).padStart(2, '0')).join(':');
+  }
+
+  // parse HH:MM:SS back to ms (returns null if invalid)
+  function parseTime(str) {
+    const parts = str.trim().split(':').map(Number);
+    if (parts.length !== 3 || parts.some(isNaN)) return null;
+    const [h, m, s] = parts;
+    if (m > 59 || s > 59) return null;
+    return (h * 3600 + m * 60 + s) * 1000;
   }
 
   function tick() {
@@ -508,7 +615,9 @@
     btnResume.style.display = 'none'; btnPause.style.display = '';
     dispDown.className = 'timer-block-value active-down';
     dispPause.className = 'timer-block-value dim';
-    pausePanel.style.display = 'none'; issueBlock.style.display = 'block';
+    pausePanel.style.display = 'none';
+    issueBlock.style.display = 'block';
+    btnSave.disabled = true; // can't save while running
     setPill('running', 'Running');
   }
 
@@ -537,8 +646,11 @@
     dispDown.className = 'timer-block-value'; dispPause.className = 'timer-block-value';
     btnPause.disabled = true; btnResume.disabled = true; btnStop.disabled = true; btnReset.disabled = false;
     btnPause.style.display = 'none'; btnResume.style.display = 'none';
-    pausePanel.style.display = 'none'; issueBlock.style.display = 'block';
-    issueNotes.focus(); setPill('stopped', 'Stopped');
+    pausePanel.style.display = 'none';
+    issueBlock.style.display = 'block';
+    btnSave.disabled = false; // now allow saving
+    issueNotes.focus();
+    setPill('stopped', 'Stopped');
   }
 
   function resetTimer() {
@@ -549,12 +661,16 @@
     btnStart.disabled = false; btnPause.disabled = true; btnStop.disabled = true; btnReset.disabled = true;
     btnPause.style.display = ''; btnResume.style.display = 'none';
     pausePanel.style.display = 'none'; issueBlock.style.display = 'none'; issueNotes.value = '';
+    lineInput.value = '';
+    btnSave.disabled = true;
     setPill('idle', 'Idle');
   }
 
   function saveEntry() {
     entries.unshift({
-      line: lineInput.value.trim(), issue: issueNotes.value.trim(),
+      id: Date.now(),
+      line: lineInput.value.trim(),
+      issue: issueNotes.value.trim(),
       down: downElapsed, pause: pauseElapsed, total: downElapsed + pauseElapsed,
       pType: pauseType, startedAt: startedAt, ts: new Date()
     });
@@ -562,14 +678,96 @@
     renderLog(); resetTimer();
   }
 
-  // ── LOG ───────────────────────────────────────────────────
+  // ── LOG EDITING ───────────────────────────────────────────
+  function toggleEdit(idx) {
+    const entry = document.querySelector(`.log-entry[data-idx="${idx}"]`);
+    const isEditing = entry.classList.contains('editing');
+    if (isEditing) {
+      cancelEdit(idx);
+    } else {
+      openEdit(idx);
+    }
+  }
+
+  function openEdit(idx) {
+    const entry = document.querySelector(`.log-entry[data-idx="${idx}"]`);
+    entry.classList.add('editing');
+
+    const editBtn    = entry.querySelector('.btn-edit');
+    const viewLine   = entry.querySelector('.log-line-view');
+    const editFields = entry.querySelector('.log-edit-fields');
+    const editActions= entry.querySelector('.log-edit-actions');
+    const viewIssue  = entry.querySelector('.log-issue-view');
+    const timeChips  = entry.querySelectorAll('.log-time-chip');
+
+    editBtn.textContent = 'Cancel';
+    editBtn.classList.add('is-editing');
+    viewLine.style.display = 'none';
+    viewIssue.style.display = 'none';
+    editFields.style.display = 'block';
+    editActions.style.display = 'flex';
+
+    // make time chips editable
+    timeChips.forEach(chip => {
+      const val = chip.querySelector('.log-time-chip-value');
+      if (val) {
+        const current = val.textContent;
+        val.innerHTML = `<input type="text" value="${current}" maxlength="8" placeholder="HH:MM:SS"/>`;
+      }
+    });
+  }
+
+  function cancelEdit(idx) {
+    renderLog(); // just re-render to restore view state
+  }
+
+  function saveEdit(idx) {
+    const entry  = document.querySelector(`.log-entry[data-idx="${idx}"]`);
+    const e      = entries[idx];
+
+    // line
+    const lineVal = entry.querySelector('.edit-line').value.trim();
+    // issue
+    const issueVal = entry.querySelector('.edit-issue').value.trim();
+    // times
+    const downInput  = entry.querySelector('.chip-down input');
+    const pauseInput = entry.querySelector('.chip-pause input');
+
+    const newDown  = parseTime(downInput ? downInput.value : fmt(e.down));
+    const newPause = parseTime(pauseInput ? pauseInput.value : fmt(e.pause));
+
+    if (newDown === null || newPause === null) {
+      // flash invalid inputs
+      [downInput, pauseInput].forEach(inp => {
+        if (inp && parseTime(inp.value) === null) {
+          inp.style.borderBottomColor = 'var(--danger)';
+          setTimeout(() => inp.style.borderBottomColor = '', 1000);
+        }
+      });
+      return;
+    }
+
+    entries[idx] = {
+      ...e,
+      line:  lineVal,
+      issue: issueVal,
+      down:  newDown,
+      pause: newPause,
+      total: newDown + newPause,
+    };
+
+    saveEntriesToStorage();
+    renderLog();
+  }
+
+  // ── LOG RENDER ────────────────────────────────────────────
   function clearLog() {
     if (!entries.length) return;
     if (confirm('Clear all log entries?')) { entries = []; saveEntriesToStorage(); renderLog(); }
   }
 
   function escHtml(s) {
-    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
   function ptLabel(pt) {
@@ -584,15 +782,36 @@
     }
     logEmpty.remove();
     logCount.textContent = entries.length + (entries.length === 1 ? ' entry' : ' entries');
-    logList.innerHTML = entries.map(e => `
-      <div class="log-entry">
-        <div class="log-entry-top"><span class="log-line">Line ${escHtml(e.line)}</span></div>
-        <div class="log-timestamp" style="margin-top:0; margin-bottom:10px;">
-          <span style="color:#6b7280;">Started:</span> ${e.startedAt ? e.startedAt.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '—'}
-          &nbsp;→&nbsp;
-          <span style="color:#6b7280;">Stopped:</span> ${e.ts.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}
-          &nbsp;&nbsp;<span style="color:#3d4251;">${e.ts.toLocaleDateString([], {month:'short',day:'numeric'})}</span>
+
+    logList.innerHTML = entries.map((e, i) => `
+      <div class="log-entry" data-idx="${i}">
+
+        <div class="log-entry-header">
+          <div class="log-timestamp">
+            <span style="color:#6b7280;">Start:</span> ${e.startedAt ? e.startedAt.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '—'}
+            &nbsp;→&nbsp;
+            <span style="color:#6b7280;">Stop:</span> ${e.ts.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
+            &nbsp;<span style="color:#3d4251;">${e.ts.toLocaleDateString([],{month:'short',day:'numeric'})}</span>
+          </div>
+          <button class="btn-edit" onclick="toggleEdit(${i})">✎ Edit</button>
         </div>
+
+        <!-- VIEW MODE -->
+        <div class="log-line-view">Line ${escHtml(e.line || '—')}</div>
+
+        <!-- EDIT MODE FIELDS -->
+        <div class="log-edit-fields">
+          <div class="field">
+            <label>Line Number</label>
+            <input type="text" class="edit-line" value="${escHtml(e.line || '')}" placeholder="Line number"/>
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label>What went wrong?</label>
+            <textarea class="edit-issue" placeholder="Issue description">${escHtml(e.issue || '')}</textarea>
+          </div>
+        </div>
+
+        <!-- TIME CHIPS (editable when in edit mode) -->
         <div class="log-times">
           <div class="log-time-chip chip-down">
             <span class="log-time-chip-label">Downtime</span>
@@ -607,8 +826,18 @@
             <span class="log-time-chip-value">${fmt(e.total)}</span>
           </div>
         </div>
+
         ${ptLabel(e.pType)}
-        <div class="log-issue">${e.issue ? escHtml(e.issue) : '<em>No issue notes recorded</em>'}</div>
+
+        <!-- VIEW MODE ISSUE -->
+        <div class="log-issue-view">${e.issue ? escHtml(e.issue) : '<em>No issue notes recorded</em>'}</div>
+
+        <!-- EDIT ACTIONS -->
+        <div class="log-edit-actions">
+          <button class="btn-log-save" onclick="saveEdit(${i})">✓ Save</button>
+          <button class="btn-log-cancel" onclick="cancelEdit(${i})">Cancel</button>
+        </div>
+
       </div>
     `).join('');
   }
