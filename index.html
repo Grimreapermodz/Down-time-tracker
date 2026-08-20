@@ -760,15 +760,15 @@
     const downInput  = entry.querySelector('.chip-down input');
     const pauseInput = entry.querySelector('.chip-pause input');
 
-    const newDown  = parseTime(downInput ? downInput.value : fmt(e.down));
-    const newPause = parseTime(pauseInput ? pauseInput.value : fmt(e.pause));
-    const refDate  = e.startedAt || e.ts;
-    const newStart = startInput && startInput.value.trim()
+    const newDownRaw = parseTime(downInput ? downInput.value : fmt(e.down));
+    const newPause    = parseTime(pauseInput ? pauseInput.value : fmt(e.pause));
+    const refDate     = e.startedAt || e.ts;
+    const newStart     = startInput && startInput.value.trim()
       ? parseHM(startInput.value, refDate)
       : null;
 
     let hasError = false;
-    if (newDown === null || newPause === null) {
+    if (newDownRaw === null || newPause === null) {
       [downInput, pauseInput].forEach(inp => {
         if (inp && parseTime(inp.value) === null) {
           inp.style.borderBottomColor = 'var(--danger)';
@@ -783,6 +783,17 @@
       hasError = true;
     }
     if (hasError) return;
+
+    // If start time changed but the downtime chip itself was left untouched,
+    // recompute downtime from the new start → stop span (minus pause time),
+    // so total time stays consistent with the edited start.
+    const startChanged  = newStart && (!e.startedAt || newStart.getTime() !== e.startedAt.getTime());
+    const downUnchanged = newDownRaw === e.down;
+    let newDown = newDownRaw;
+    if (startChanged && downUnchanged) {
+      const span = e.ts.getTime() - newStart.getTime();
+      newDown = Math.max(0, span - newPause);
+    }
 
     entries[idx] = {
       ...e,
