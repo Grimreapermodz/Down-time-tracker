@@ -787,10 +787,12 @@
     // If start time changed but the downtime chip itself was left untouched,
     // recompute downtime from the new start → stop span (minus pause time),
     // so total time stays consistent with the edited start.
+    // Compare against the *displayed* string (not raw ms) since fmt() rounds
+    // to whole seconds and raw stored ms can carry sub-second precision.
     const startChanged  = newStart && (!e.startedAt || newStart.getTime() !== e.startedAt.getTime());
-    const downUnchanged = newDownRaw === e.down;
+    const downFieldTouched = downInput && downInput.value.trim() !== fmt(e.down);
     let newDown = newDownRaw;
-    if (startChanged && downUnchanged) {
+    if (startChanged && !downFieldTouched) {
       const span = e.ts.getTime() - newStart.getTime();
       newDown = Math.max(0, span - newPause);
     }
