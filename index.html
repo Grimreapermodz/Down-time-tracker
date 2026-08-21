@@ -1372,6 +1372,20 @@
       <button class="btn-test-sound" id="btn-check-update" onclick="checkForUpdate()">⟳ Check for Update</button>
       <div id="check-update-status" style="font-family:var(--mono); font-size:11px; color:var(--muted); margin-top:8px; min-height:14px;"></div>
     </div>
+
+    <div class="settings-header" style="margin-top:24px; margin-bottom:8px;">
+      <h2 style="font-size:13px;">In Development</h2>
+    </div>
+    <div class="settings-row">
+      <div>
+        <div class="settings-row-label">NFC Scanning</div>
+        <div class="settings-row-sub">Tap-to-fill line codes via NFC tags — experimental</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="setting-nfc-enabled" onchange="onSettingsChange()"/>
+        <span class="toggle-track"></span>
+      </label>
+    </div>
   </div>
 </div>
 
@@ -1988,7 +2002,8 @@
     recentLinesCount: 5,
     requirePauseReason: false,
     alertSound: 'beep',
-    qrCodes: [] // { id, line, token, copies }
+    qrCodes: [], // { id, line, token, copies }
+    nfcEnabled: false
   };
   let recentLines = []; // most-recent-first array of line number strings
   let wakeLock = null;
@@ -2960,6 +2975,7 @@
     document.getElementById('setting-require-pause-reason').checked = settings.requirePauseReason;
     document.getElementById('setting-recent-lines-enabled').checked = settings.recentLinesEnabled;
     document.getElementById('setting-recent-lines-count').value = String(settings.recentLinesCount);
+    document.getElementById('setting-nfc-enabled').checked = settings.nfcEnabled;
     renderPauseTypeSettingsList();
     renderColorSwatchPicker();
     renderQrCodeSettingsList();
@@ -2984,10 +3000,19 @@
     settings.requirePauseReason = document.getElementById('setting-require-pause-reason').checked;
     settings.recentLinesEnabled = document.getElementById('setting-recent-lines-enabled').checked;
     settings.recentLinesCount   = Number(document.getElementById('setting-recent-lines-count').value);
+    settings.nfcEnabled         = document.getElementById('setting-nfc-enabled').checked;
     saveSettingsToStorage();
 
     // apply live effects immediately
     renderRecentLines();
+    if (settings.nfcEnabled) {
+      updateNfcButtonVisibility();
+      autoArmNfc();
+    } else {
+      stopNfcScan();
+      updateNfcButtonVisibility();
+    }
+    renderQrCodeSettingsList();
     if (settings.keepScreenAwake && (state === 'running' || state === 'paused')) {
       acquireWakeLock();
     } else if (!settings.keepScreenAwake) {
@@ -3320,7 +3345,7 @@
 
   // ── NFC scanning (Web NFC — Android Chrome only) ────────────
   function nfcSupported() {
-    return 'NDEFReader' in window;
+    return settings.nfcEnabled && 'NDEFReader' in window;
   }
 
   function setNfcStatus(msg, isError) {
