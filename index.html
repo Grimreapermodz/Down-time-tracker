@@ -1263,7 +1263,7 @@
       { id: 'dimensional', label: 'Dimensional', icon: '◈', color: '#9b6dff', isDefault: true },
       { id: 'quality',     label: 'Quality',     icon: '◉', color: '#4a90d9', isDefault: true }
     ],
-    keepScreenAwake: false,
+    keepScreenAwake: true,
     recentLinesEnabled: true,
     recentLinesCount: 5,
     requirePauseReason: false,
@@ -2331,7 +2331,7 @@
   // ── SERVICE WORKER ────────────────────────────────────────
   let swReg = null;
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').then(reg => {
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
       swReg = reg;
       reg.addEventListener('updatefound', () => {
         const nw = reg.installing;
@@ -2354,24 +2354,38 @@
   function checkForUpdate() {
     const btn = document.getElementById('btn-check-update');
     const status = document.getElementById('check-update-status');
-    if (!swReg) {
-      status.textContent = 'Service worker not ready yet — try again in a moment.';
+
+    if (!('serviceWorker' in navigator)) {
+      status.textContent = 'Service workers are not supported in this browser.';
       return;
     }
+
     btn.disabled = true;
     const originalText = btn.textContent;
     btn.textContent = 'Checking…';
     status.textContent = '';
 
-    swReg.update().then(() => {
+    // Don't rely solely on the module-level swReg variable — it may not be
+    // set yet if registration is still in flight. Fall back to asking the
+    // browser directly for the current registration.
+    const getReg = swReg
+      ? Promise.resolve(swReg)
+      : navigator.serviceWorker.getRegistration().then(reg => reg || navigator.serviceWorker.ready);
+
+    getReg.then(reg => {
+      if (!reg) throw new Error('no registration');
+      swReg = reg; // cache it for applyUpdate() and next time
+      return reg.update().then(() => reg);
+    }).then(reg => {
       // give the browser a moment to evaluate whether a new sw.js was found
       setTimeout(() => {
         btn.disabled = false;
         btn.textContent = originalText;
-        if (swReg.waiting) {
+        if (reg.waiting) {
           status.textContent = 'Update found — tap the banner at the bottom to apply.';
+          document.getElementById('update-banner').style.display = 'block';
         } else {
-          status.textContent = 'You\'re on the latest version.';
+          status.textContent = "You're on the latest version.";
         }
       }, 800);
     }).catch(() => {
