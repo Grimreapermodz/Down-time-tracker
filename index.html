@@ -76,6 +76,25 @@
     }
 
     .field { margin-bottom: 20px; }
+
+    .recent-line-chip {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 99px;
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .recent-line-chip:hover, .recent-line-chip:active {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
     label {
       display: block;
       font-family: var(--mono);
@@ -194,9 +213,10 @@
       transition: all 0.15s;
       -webkit-tap-highlight-color: transparent;
     }
-    .btn-pause-type:hover         { border-color: var(--blue); color: var(--blue); }
-    .btn-pause-type.selected-dim  { border-color: var(--purple); color: var(--purple); background: #1e1530; }
-    .btn-pause-type.selected-qual { border-color: var(--blue);   color: var(--blue);   background: #0f1f35; }
+    .btn-pause-type:hover  { border-color: var(--blue); color: var(--blue); }
+    .btn-pause-type.selected {
+      /* color/border/background applied inline per pause-type color */
+    }
 
     /* ── BUTTONS ── */
     .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -354,8 +374,7 @@
       border-radius: 99px;
       margin-bottom: 8px;
     }
-    .pt-dimensional { background: #1e1530; color: var(--purple); border: 1px solid var(--purple); }
-    .pt-quality     { background: #0f1f35; color: var(--blue);   border: 1px solid var(--blue); }
+    /* individual pause-type badge colors are applied inline (supports custom types) */
 
     .log-issue-view { font-size: 13px; color: var(--muted); line-height: 1.5; }
     .log-issue-view em { font-style: normal; color: #4b5260; }
@@ -433,21 +452,404 @@
       .timer-block-value { font-size: 22px; }
       .card { padding: 20px 16px; }
     }
+
+    /* ── SETTINGS MODAL ── */
+    #settings-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 1000;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    #settings-overlay.open { display: flex; }
+    #settings-sheet {
+      width: 100%;
+      max-width: 640px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-bottom: none;
+      border-radius: 12px 12px 0 0;
+      padding: 24px 24px calc(24px + env(safe-area-inset-bottom, 0px));
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+    .settings-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .settings-header h2 {
+      font-family: var(--mono);
+      font-size: 15px;
+      letter-spacing: 0.04em;
+      color: var(--text);
+    }
+    .btn-close-settings {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 6px;
+      width: 32px;
+      height: 32px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+      gap: 16px;
+    }
+    .settings-row:last-of-type { border-bottom: none; }
+    .settings-row-label {
+      font-size: 14px;
+      color: var(--text);
+    }
+    .settings-row-sub {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    /* toggle switch */
+    .toggle {
+      position: relative;
+      width: 46px;
+      height: 26px;
+      flex-shrink: 0;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-track {
+      position: absolute; inset: 0;
+      background: var(--border);
+      border-radius: 99px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle-track::before {
+      content: '';
+      position: absolute;
+      width: 20px; height: 20px;
+      left: 3px; top: 3px;
+      background: var(--text);
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+    .toggle input:checked + .toggle-track { background: var(--accent); }
+    .toggle input:checked + .toggle-track::before { transform: translateX(20px); background: #111; }
+
+    /* interval selector */
+    .interval-select {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 13px;
+      padding: 8px 12px;
+      outline: none;
+    }
+
+    .settings-test-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .btn-test-sound {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: var(--border);
+      color: var(--text);
+      border: none;
+      border-radius: 6px;
+      padding: 10px 16px;
+      cursor: pointer;
+      flex: 1;
+    }
+
+    .settings-note {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-top: 16px;
+      padding: 12px;
+      background: var(--bg);
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+
+    /* ── PAUSE TYPE MANAGEMENT ── */
+    .pause-type-list { margin-top: 8px; }
+    .pause-type-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .pause-type-item:last-child { border-bottom: none; }
+    .pause-type-swatch {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .pause-type-item-label {
+      flex: 1;
+      font-size: 13px;
+      color: var(--text);
+    }
+    .pause-type-item-default {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 6px;
+    }
+    .btn-remove-pause-type {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 6px;
+      width: 28px;
+      height: 28px;
+      font-size: 13px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .btn-remove-pause-type:hover { border-color: var(--danger); color: var(--danger); }
+
+    .add-pause-type-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .add-pause-type-row input[type="text"] {
+      flex: 1;
+      font-size: 13px;
+      padding: 9px 12px;
+    }
+    .color-swatch-picker {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .color-swatch-option {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border-color 0.15s, transform 0.1s;
+    }
+    .color-swatch-option:active { transform: scale(0.92); }
+    .color-swatch-option.selected { border-color: #fff; }
+    .btn-add-pause-type {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: var(--accent);
+      color: #111;
+      border: none;
+      border-radius: 6px;
+      padding: 9px 16px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-add-pause-type:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    #alert-banner {
+      display: none;
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--danger);
+      color: #fff;
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 12px 24px;
+      border-radius: 6px;
+      z-index: 1001;
+      white-space: nowrap;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      animation: alertPulse 1s ease-in-out infinite;
+    }
+    @keyframes alertPulse {
+      0%, 100% { transform: translateX(-50%) scale(1); }
+      50% { transform: translateX(-50%) scale(1.04); }
+    }
   </style>
 </head>
 <body>
 
 <div id="update-banner" onclick="applyUpdate()">⬆ Update available — tap to reload</div>
+<div id="alert-banner">⏰ Downtime interval reached</div>
 
-<header>
-  <div class="eyebrow">Production Floor</div>
-  <h1>Line Downtime Tracker</h1>
+<div id="settings-overlay" onclick="if(event.target===this) closeSettings()">
+  <div id="settings-sheet">
+    <div class="settings-header">
+      <h2>Settings</h2>
+      <button class="btn-close-settings" onclick="closeSettings()">✕</button>
+    </div>
+
+    <div class="settings-row">
+      <div>
+        <div class="settings-row-label">Interval Alerts</div>
+        <div class="settings-row-sub">Play a sound during active downtime</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="setting-alerts-enabled" onchange="onSettingsChange()"/>
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+
+    <div class="settings-row">
+      <div>
+        <div class="settings-row-label">Alert Every</div>
+        <div class="settings-row-sub">Repeats while downtime timer runs</div>
+      </div>
+      <select class="interval-select" id="setting-interval" onchange="onSettingsChange()">
+        <option value="1">1 minute</option>
+        <option value="5">5 minutes</option>
+        <option value="10">10 minutes</option>
+        <option value="15" selected>15 minutes</option>
+        <option value="30">30 minutes</option>
+        <option value="60">60 minutes</option>
+      </select>
+    </div>
+
+    <div class="settings-row">
+      <div>
+        <div class="settings-row-label">Alert on Pause</div>
+        <div class="settings-row-sub">Also alert during pause reasons (dimensional, quality, etc.)</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="setting-alert-on-pause" onchange="onSettingsChange()"/>
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+
+    <div class="settings-row">
+      <div>
+        <div class="settings-row-label">Alert Sound</div>
+        <div class="settings-row-sub">Tone used for interval alerts</div>
+      </div>
+      <select class="interval-select" id="setting-alert-sound" onchange="onSettingsChange()">
+        <option value="beep">Beep</option>
+        <option value="chime">Chime</option>
+        <option value="buzz">Buzz</option>
+        <option value="bell">Bell</option>
+      </select>
+    </div>
+
+    <div class="settings-test-row">
+      <button class="btn-test-sound" onclick="playAlertSound()">🔊 Test Sound</button>
+    </div>
+
+    <div class="settings-header" style="margin-top:24px; margin-bottom:8px;">
+      <h2 style="font-size:13px;">Timer Behavior</h2>
+    </div>
+
+    <div class="settings-row">
+      <div>
+        <div class="settings-row-label">Keep Screen Awake</div>
+        <div class="settings-row-sub">Prevents screen from locking while timer runs</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="setting-keep-awake" onchange="onSettingsChange()"/>
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+
+    <div class="settings-row">
+      <div>
+        <div class="settings-row-label">Require Pause Reason</div>
+        <div class="settings-row-sub">Block Resume until a reason is selected</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="setting-require-pause-reason" onchange="onSettingsChange()"/>
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+
+    <div class="settings-header" style="margin-top:24px; margin-bottom:8px;">
+      <h2 style="font-size:13px;">Recent Lines</h2>
+    </div>
+
+    <div class="settings-row">
+      <div>
+        <div class="settings-row-label">Show Recent Lines</div>
+        <div class="settings-row-sub">Quick-pick chips under the Line Number field</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="setting-recent-lines-enabled" onchange="onSettingsChange()"/>
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+
+    <div class="settings-row">
+      <div>
+        <div class="settings-row-label">Lines Remembered</div>
+        <div class="settings-row-sub">How many recent lines to show</div>
+      </div>
+      <select class="interval-select" id="setting-recent-lines-count" onchange="onSettingsChange()">
+        <option value="3">3</option>
+        <option value="5" selected>5</option>
+        <option value="8">8</option>
+        <option value="12">12</option>
+      </select>
+    </div>
+
+    <div class="settings-header" style="margin-top:24px; margin-bottom:8px;">
+      <h2 style="font-size:13px;">Pause Reasons</h2>
+    </div>
+    <div class="settings-row-sub" style="margin-bottom:4px;">Buttons shown when the timer is paused</div>
+    <div class="pause-type-list" id="pause-type-list"></div>
+
+    <div class="add-pause-type-row">
+      <input type="text" id="new-pause-type-name" placeholder="New reason name" maxlength="24"/>
+      <button class="btn-add-pause-type" id="btn-add-pause-type" onclick="addPauseType()">+ Add</button>
+    </div>
+    <div class="color-swatch-picker" id="color-swatch-picker"></div>
+
+    <div class="settings-note">
+      Alerts and Keep Screen Awake work while this app is open on screen. If the phone locks or the app is backgrounded, Android may still pause the timer depending on the device — keep the app open in the foreground for the most reliable alerts.
+    </div>
+  </div>
+</div>
+
+<header style="display:flex; align-items:center; justify-content:space-between;">
+  <div>
+    <div class="eyebrow">Production Floor</div>
+    <h1>Line Downtime Tracker</h1>
+  </div>
+  <button id="btn-settings" onclick="openSettings()" aria-label="Settings" style="background:none;border:1px solid var(--border);border-radius:6px;width:40px;height:40px;color:var(--muted);font-size:18px;cursor:pointer;flex-shrink:0;">⚙</button>
 </header>
 
 <div class="card">
   <div class="field">
     <label for="line-number">Line Number</label>
     <input type="text" id="line-number" placeholder="e.g. Line 4, Station B" autocomplete="off"/>
+    <div id="recent-lines-row" style="display:none; flex-wrap:wrap; gap:6px; margin-top:8px;"></div>
   </div>
 
   <div class="status-row">
@@ -471,10 +873,7 @@
 
   <div class="pause-panel" id="pause-panel">
     <div class="pause-panel-label">Pause reason</div>
-    <div class="pause-type-row">
-      <button class="btn-pause-type" id="btn-dim"  onclick="selectPauseType('dimensional')">◈ Dimensional</button>
-      <button class="btn-pause-type" id="btn-qual" onclick="selectPauseType('quality')">◉ Quality</button>
-    </div>
+    <div class="pause-type-row" id="pause-type-row"></div>
   </div>
 
   <div class="btn-row" style="margin-bottom: 20px;">
@@ -520,6 +919,31 @@
   let entries      = [];
   let startedAt    = null;
 
+  // ── SETTINGS / ALERTS ────────────────────────────────────────
+  const PAUSE_COLOR_PALETTE = ['#9b6dff', '#4a90d9', '#e84444', '#f5a623', '#2ecc71', '#e055c3', '#5fd4c4', '#c9a227'];
+
+  let settings = {
+    alertsEnabled: false,
+    intervalMinutes: 15,
+    alertOnPause: false,
+    pauseTypes: [
+      { id: 'dimensional', label: 'Dimensional', icon: '◈', color: '#9b6dff', isDefault: true },
+      { id: 'quality',     label: 'Quality',     icon: '◉', color: '#4a90d9', isDefault: true }
+    ],
+    keepScreenAwake: false,
+    recentLinesEnabled: true,
+    recentLinesCount: 5,
+    requirePauseReason: false,
+    alertSound: 'beep'
+  };
+  let recentLines = []; // most-recent-first array of line number strings
+  let wakeLock = null;
+  let draftIssueTimer = null;
+  let lastAlertDown  = 0;   // last crossed interval multiple for downtime phase
+  let lastAlertPause = 0;   // last crossed interval multiple for pause phase
+  let audioCtx = null;   // lazily created on first user interaction
+  let selectedNewPauseColor = PAUSE_COLOR_PALETTE[0];
+
   // ── DOM ────────────────────────────────────────────────────
   const lineInput  = document.getElementById('line-number');
   const pill       = document.getElementById('status-pill');
@@ -535,8 +959,7 @@
   const btnStop    = document.getElementById('btn-stop');
   const btnReset   = document.getElementById('btn-reset');
   const btnSave    = document.getElementById('btn-save');
-  const btnDim     = document.getElementById('btn-dim');
-  const btnQual    = document.getElementById('btn-qual');
+  const pauseTypeRow = document.getElementById('pause-type-row');
   const logList    = document.getElementById('log-list');
   const logEmpty   = document.getElementById('log-empty');
   const logCount   = document.getElementById('log-count');
@@ -559,6 +982,47 @@
     } catch(e) {}
   }
   loadEntriesFromStorage();
+
+  function saveSettingsToStorage() {
+    try { localStorage.setItem('dt_settings', JSON.stringify(settings)); } catch(e) {}
+  }
+  function loadSettingsFromStorage() {
+    try {
+      const raw = localStorage.getItem('dt_settings');
+      if (raw) settings = { ...settings, ...JSON.parse(raw) };
+    } catch(e) {}
+  }
+  loadSettingsFromStorage();
+  renderPauseTypeButtons();
+
+  function saveRecentLinesToStorage() {
+    try { localStorage.setItem('dt_recent_lines', JSON.stringify(recentLines)); } catch(e) {}
+  }
+  function loadRecentLinesFromStorage() {
+    try {
+      const raw = localStorage.getItem('dt_recent_lines');
+      if (raw) recentLines = JSON.parse(raw);
+    } catch(e) {}
+  }
+  loadRecentLinesFromStorage();
+  renderRecentLines();
+
+  function addRecentLine(line) {
+    if (!line) return;
+    recentLines = [line, ...recentLines.filter(l => l.toLowerCase() !== line.toLowerCase())];
+    recentLines = recentLines.slice(0, Math.max(1, settings.recentLinesCount));
+    saveRecentLinesToStorage();
+  }
+
+  function saveDraftIssue(text) {
+    try { localStorage.setItem('dt_draft_issue', text); } catch(e) {}
+  }
+  function loadDraftIssue() {
+    try { return localStorage.getItem('dt_draft_issue') || ''; } catch(e) { return ''; }
+  }
+  function clearDraftIssue() {
+    try { localStorage.removeItem('dt_draft_issue'); } catch(e) {}
+  }
 
   // ── HELPERS ───────────────────────────────────────────────
   function fmt(ms) {
@@ -609,11 +1073,65 @@
       const d = downElapsed + (now - segStart);
       dispDown.textContent  = fmt(d);
       dispTotal.textContent = fmt(d + pauseElapsed);
+      checkIntervalAlert(d, 'down');
     } else if (state === 'paused') {
       const p = pauseElapsed + (now - segStart);
       dispPause.textContent = fmt(p);
       dispTotal.textContent = fmt(downElapsed + p);
+      if (settings.alertOnPause) checkIntervalAlert(p, 'pause');
     }
+  }
+
+  // ── INTERVAL ALERTS ───────────────────────────────────────
+  function checkIntervalAlert(elapsedMs, phase) {
+    if (!settings.alertsEnabled) return;
+    const intervalMs = settings.intervalMinutes * 60 * 1000;
+    if (intervalMs <= 0) return;
+    const crossedMultiple = Math.floor(elapsedMs / intervalMs);
+    if (crossedMultiple === 0) return;
+    if (phase === 'down' && crossedMultiple !== lastAlertDown) {
+      lastAlertDown = crossedMultiple;
+      fireAlert();
+    } else if (phase === 'pause' && crossedMultiple !== lastAlertPause) {
+      lastAlertPause = crossedMultiple;
+      fireAlert();
+    }
+  }
+
+  function fireAlert() {
+    playAlertSound();
+    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+    const banner = document.getElementById('alert-banner');
+    banner.style.display = 'block';
+    setTimeout(() => { banner.style.display = 'none'; }, 2500);
+  }
+
+  const ALERT_SOUND_PRESETS = {
+    beep:    { freq: 880,  wave: 'square',   beeps: [0, 0.25, 0.5] },
+    chime:   { freq: 1320, wave: 'sine',     beeps: [0, 0.3] },
+    buzz:    { freq: 220,  wave: 'sawtooth', beeps: [0, 0.15, 0.3, 0.45] },
+    bell:    { freq: 1760, wave: 'triangle', beeps: [0] }
+  };
+
+  function playAlertSound() {
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const preset = ALERT_SOUND_PRESETS[settings.alertSound] || ALERT_SOUND_PRESETS.beep;
+      const now = audioCtx.currentTime;
+      preset.beeps.forEach(offset => {
+        const osc  = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = preset.wave;
+        osc.frequency.setValueAtTime(preset.freq, now + offset);
+        gain.gain.setValueAtTime(0.0001, now + offset);
+        gain.gain.exponentialRampToValueAtTime(0.3, now + offset + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + offset + 0.28);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(now + offset);
+        osc.stop(now + offset + 0.3);
+      });
+    } catch(e) {}
   }
 
   function snapshotSegment() {
@@ -626,15 +1144,52 @@
 
   function setPill(s, text) { pill.textContent = text; pill.className = 'pill ' + s; }
 
-  function selectPauseType(type) {
-    pauseType = type;
-    btnDim.className  = type === 'dimensional' ? 'btn-pause-type selected-dim'  : 'btn-pause-type';
-    btnQual.className = type === 'quality'     ? 'btn-pause-type selected-qual' : 'btn-pause-type';
+  function renderRecentLines() {
+    const row = document.getElementById('recent-lines-row');
+    if (!settings.recentLinesEnabled || recentLines.length === 0) {
+      row.style.display = 'none';
+      row.innerHTML = '';
+      return;
+    }
+    row.style.display = 'flex';
+    row.innerHTML = recentLines.map(l => `
+      <button type="button" class="recent-line-chip" onclick="pickRecentLine('${escHtml(l).replace(/'/g,"\\'")}')">${escHtml(l)}</button>
+    `).join('');
+  }
+
+  function pickRecentLine(line) {
+    lineInput.value = line;
+    lineInput.focus();
+  }
+
+  function renderPauseTypeButtons() {
+    pauseTypeRow.innerHTML = settings.pauseTypes.map(pt => `
+      <button class="btn-pause-type" data-pt-id="${escHtml(pt.id)}" onclick="selectPauseType('${escHtml(pt.id)}')">${pt.icon} ${escHtml(pt.label)}</button>
+    `).join('');
+  }
+
+  function selectPauseType(id) {
+    pauseType = id;
+    const pt = settings.pauseTypes.find(p => p.id === id);
+    pauseTypeRow.querySelectorAll('.btn-pause-type').forEach(btn => {
+      if (btn.dataset.ptId === id && pt) {
+        btn.classList.add('selected');
+        btn.style.borderColor = pt.color;
+        btn.style.color = pt.color;
+        btn.style.background = pt.color + '22';
+      } else {
+        btn.classList.remove('selected');
+        btn.style.borderColor = '';
+        btn.style.color = '';
+        btn.style.background = '';
+      }
+    });
   }
 
   // ── ACTIONS ───────────────────────────────────────────────
   function startTimer() {
     state = 'running'; segStart = Date.now(); startedAt = new Date();
+    lastAlertDown = 0; lastAlertPause = 0;
     tickInterval = setInterval(tick, 250);
     btnStart.disabled = true; btnPause.disabled = false; btnStop.disabled = false; btnReset.disabled = true;
     btnResume.style.display = 'none'; btnPause.style.display = '';
@@ -644,18 +1199,29 @@
     issueBlock.style.display = 'block';
     btnSave.disabled = true; // can't save while running
     setPill('running', 'Running');
+    acquireWakeLock();
+    // restore any unsaved draft notes from a previous crash/reload
+    const draft = loadDraftIssue();
+    if (draft) issueNotes.value = draft;
   }
 
   function pauseTimer() {
     snapshotSegment(); state = 'paused'; segStart = Date.now();
     btnPause.style.display = 'none'; btnResume.style.display = ''; btnResume.disabled = false;
     btnStop.disabled = false; pausePanel.style.display = 'block';
-    pauseType = null; btnDim.className = 'btn-pause-type'; btnQual.className = 'btn-pause-type';
+    pauseType = null;
+    renderPauseTypeButtons();
     dispDown.className = 'timer-block-value dim'; dispPause.className = 'timer-block-value active-pause';
     setPill('paused', 'Paused');
   }
 
   function resumeTimer() {
+    if (settings.requirePauseReason && !pauseType) {
+      pauseTypeRow.style.outline = '2px solid var(--danger)';
+      pauseTypeRow.style.borderRadius = '4px';
+      setTimeout(() => { pauseTypeRow.style.outline = ''; }, 1000);
+      return;
+    }
     snapshotSegment(); state = 'running'; segStart = Date.now();
     btnResume.style.display = 'none'; btnPause.style.display = ''; btnPause.disabled = false;
     pausePanel.style.display = 'none';
@@ -676,11 +1242,13 @@
     btnSave.disabled = false; // now allow saving
     issueNotes.focus();
     setPill('stopped', 'Stopped');
+    releaseWakeLock();
   }
 
   function resetTimer() {
     clearInterval(tickInterval);
     downElapsed = 0; pauseElapsed = 0; segStart = null; pauseType = null; state = 'idle'; startedAt = null;
+    lastAlertDown = 0; lastAlertPause = 0;
     dispDown.textContent = '00:00:00'; dispPause.textContent = '00:00:00'; dispTotal.textContent = '00:00:00';
     dispDown.className = 'timer-block-value dim'; dispPause.className = 'timer-block-value dim';
     btnStart.disabled = false; btnPause.disabled = true; btnStop.disabled = true; btnReset.disabled = true;
@@ -689,17 +1257,23 @@
     lineInput.value = '';
     btnSave.disabled = true;
     setPill('idle', 'Idle');
+    releaseWakeLock();
+    clearDraftIssue();
   }
 
   function saveEntry() {
+    const lineVal = lineInput.value.trim();
     entries.unshift({
       id: Date.now(),
-      line: lineInput.value.trim(),
+      line: lineVal,
       issue: issueNotes.value.trim(),
       down: downElapsed, pause: pauseElapsed, total: downElapsed + pauseElapsed,
       pType: pauseType, startedAt: startedAt, ts: new Date()
     });
     saveEntriesToStorage();
+    addRecentLine(lineVal);
+    renderRecentLines();
+    clearDraftIssue();
     renderLog(); resetTimer();
   }
 
@@ -821,10 +1395,14 @@
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
-  function ptLabel(pt) {
-    if (pt === 'dimensional') return '<span class="log-pause-type pt-dimensional">◈ Dimensional</span>';
-    if (pt === 'quality')     return '<span class="log-pause-type pt-quality">◉ Quality</span>';
-    return '';
+  function ptLabel(ptId) {
+    if (!ptId) return '';
+    const pt = settings.pauseTypes.find(p => p.id === ptId);
+    if (!pt) {
+      // pause type was later deleted from settings — still show what was recorded
+      return `<span class="log-pause-type" style="background:#222;color:${'#888'};border:1px solid #444;">${escHtml(ptId)}</span>`;
+    }
+    return `<span class="log-pause-type" style="background:${pt.color}22;color:${pt.color};border:1px solid ${pt.color};">${pt.icon} ${escHtml(pt.label)}</span>`;
   }
 
   function renderLog() {
@@ -895,6 +1473,146 @@
 
       </div>
     `).join('');
+  }
+
+  // ── WAKE LOCK ──────────────────────────────────────────────
+  async function acquireWakeLock() {
+    if (!settings.keepScreenAwake) return;
+    if (!('wakeLock' in navigator)) return;
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    } catch(e) {
+      // permission denied or unsupported — fail silently, alerts still work while app is foregrounded
+    }
+  }
+
+  function releaseWakeLock() {
+    if (wakeLock) {
+      try { wakeLock.release(); } catch(e) {}
+      wakeLock = null;
+    }
+  }
+
+  // re-acquire wake lock if the tab becomes visible again mid-timer
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && (state === 'running' || state === 'paused') && settings.keepScreenAwake) {
+      acquireWakeLock();
+    }
+  });
+
+  // ── DRAFT ISSUE AUTO-SAVE ──────────────────────────────────
+  issueNotes.addEventListener('input', () => {
+    clearTimeout(draftIssueTimer);
+    draftIssueTimer = setTimeout(() => saveDraftIssue(issueNotes.value), 400);
+  });
+
+  // ── SETTINGS MODAL ────────────────────────────────────────
+  function openSettings() {
+    document.getElementById('setting-alerts-enabled').checked = settings.alertsEnabled;
+    document.getElementById('setting-interval').value = String(settings.intervalMinutes);
+    document.getElementById('setting-alert-on-pause').checked = settings.alertOnPause;
+    document.getElementById('setting-alert-sound').value = settings.alertSound;
+    document.getElementById('setting-keep-awake').checked = settings.keepScreenAwake;
+    document.getElementById('setting-require-pause-reason').checked = settings.requirePauseReason;
+    document.getElementById('setting-recent-lines-enabled').checked = settings.recentLinesEnabled;
+    document.getElementById('setting-recent-lines-count').value = String(settings.recentLinesCount);
+    renderPauseTypeSettingsList();
+    renderColorSwatchPicker();
+    document.getElementById('settings-overlay').classList.add('open');
+    // unlock audio context on this user gesture so later programmatic beeps work
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    } catch(e) {}
+  }
+
+  function closeSettings() {
+    document.getElementById('settings-overlay').classList.remove('open');
+  }
+
+  function onSettingsChange() {
+    settings.alertsEnabled      = document.getElementById('setting-alerts-enabled').checked;
+    settings.intervalMinutes    = Number(document.getElementById('setting-interval').value);
+    settings.alertOnPause       = document.getElementById('setting-alert-on-pause').checked;
+    settings.alertSound         = document.getElementById('setting-alert-sound').value;
+    settings.keepScreenAwake    = document.getElementById('setting-keep-awake').checked;
+    settings.requirePauseReason = document.getElementById('setting-require-pause-reason').checked;
+    settings.recentLinesEnabled = document.getElementById('setting-recent-lines-enabled').checked;
+    settings.recentLinesCount   = Number(document.getElementById('setting-recent-lines-count').value);
+    saveSettingsToStorage();
+
+    // apply live effects immediately
+    renderRecentLines();
+    if (settings.keepScreenAwake && (state === 'running' || state === 'paused')) {
+      acquireWakeLock();
+    } else if (!settings.keepScreenAwake) {
+      releaseWakeLock();
+    }
+    // trim recent lines list if the remembered count was lowered
+    if (recentLines.length > settings.recentLinesCount) {
+      recentLines = recentLines.slice(0, settings.recentLinesCount);
+      saveRecentLinesToStorage();
+      renderRecentLines();
+    }
+  }
+
+  // ── PAUSE TYPE MANAGEMENT (settings) ──────────────────────
+  function renderPauseTypeSettingsList() {
+    const list = document.getElementById('pause-type-list');
+    list.innerHTML = settings.pauseTypes.map(pt => `
+      <div class="pause-type-item">
+        <span class="pause-type-swatch" style="background:${pt.color};"></span>
+        <span class="pause-type-item-label">${pt.icon} ${escHtml(pt.label)}</span>
+        ${pt.isDefault
+          ? '<span class="pause-type-item-default">Default</span>'
+          : `<button class="btn-remove-pause-type" onclick="removePauseType('${escHtml(pt.id)}')" aria-label="Remove">✕</button>`}
+      </div>
+    `).join('');
+  }
+
+  function renderColorSwatchPicker() {
+    const picker = document.getElementById('color-swatch-picker');
+    picker.innerHTML = PAUSE_COLOR_PALETTE.map(color => `
+      <div class="color-swatch-option ${color === selectedNewPauseColor ? 'selected' : ''}"
+           style="background:${color};"
+           onclick="pickNewPauseColor('${color}')"></div>
+    `).join('');
+  }
+
+  function pickNewPauseColor(color) {
+    selectedNewPauseColor = color;
+    renderColorSwatchPicker();
+  }
+
+  function addPauseType() {
+    const input = document.getElementById('new-pause-type-name');
+    const label = input.value.trim();
+    if (!label) { input.focus(); return; }
+
+    const id = 'custom_' + Date.now();
+    settings.pauseTypes.push({
+      id, label, icon: '●', color: selectedNewPauseColor, isDefault: false
+    });
+    saveSettingsToStorage();
+    input.value = '';
+    // rotate to next color for convenience on the next add
+    const idx = PAUSE_COLOR_PALETTE.indexOf(selectedNewPauseColor);
+    selectedNewPauseColor = PAUSE_COLOR_PALETTE[(idx + 1) % PAUSE_COLOR_PALETTE.length];
+
+    renderPauseTypeSettingsList();
+    renderColorSwatchPicker();
+    renderPauseTypeButtons();
+  }
+
+  function removePauseType(id) {
+    const pt = settings.pauseTypes.find(p => p.id === id);
+    if (!pt || pt.isDefault) return;
+    if (!confirm(`Remove "${pt.label}" pause reason?`)) return;
+    settings.pauseTypes = settings.pauseTypes.filter(p => p.id !== id);
+    saveSettingsToStorage();
+    renderPauseTypeSettingsList();
+    renderPauseTypeButtons();
   }
 
   // ── SERVICE WORKER ────────────────────────────────────────
