@@ -2002,7 +2002,7 @@
     recentLinesCount: 5,
     requirePauseReason: false,
     alertSound: 'beep',
-    qrCodes: [], // { id, line, token, copies }
+    qrCodes: [], // { id, line, copies }
     nfcEnabled: false
   };
   let recentLines = []; // most-recent-first array of line number strings
@@ -3098,16 +3098,18 @@
   // QR LINE CODES — generation, management, scanning, printing
   // ══════════════════════════════════════════════════════════
 
-  // ── Token generation ──────────────────────────────────────
-  // Opaque 4-character token. A stock camera app just sees this string;
-  // only this app's own scanner knows to look it up against settings.qrCodes.
-  function generateQrToken() {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no O/0/I/1 ambiguity
-    let token;
-    do {
-      token = Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-    } while (settings.qrCodes.some(q => q.token === token));
-    return token;
+  // ── Line code formatting ───────────────────────────────────
+  // Plain, human-readable text — a stock camera app or NFC reader shows
+  // "Line: 236" directly. The app strips the "Line:" prefix on scan and
+  // fills in whatever comes after it (see parseLineCode below).
+  function formatLineCode(line) {
+    return `Line: ${line}`;
+  }
+
+  function parseLineCode(raw) {
+    if (!raw) return null;
+    const m = String(raw).trim().match(/^line\s*:\s*(.+)$/i);
+    return m ? m[1].trim() : null;
   }
 
   function renderQrCodeSettingsList() {
@@ -3122,7 +3124,7 @@
         <div class="qr-code-item">
           <div class="qr-code-item-info">
             <div class="qr-code-item-name">${escHtml(q.line)}</div>
-            <div class="qr-code-item-token">Code: ${escHtml(q.token)}</div>
+            <div class="qr-code-item-token">Code: ${escHtml(formatLineCode(q.line))}</div>
           </div>
           ${nfcBtn(q)}
           <div class="qr-code-item-copies">
@@ -3157,7 +3159,6 @@
     settings.qrCodes.push({
       id: 'qr_' + Date.now(),
       line,
-      token: generateQrToken(),
       copies
     });
     saveSettingsToStorage();
@@ -3198,7 +3199,7 @@
         card.className = 'qr-label-card';
 
         const canvas = document.createElement('canvas');
-        drawQrToCanvas(canvas, q.token, 220);
+        drawQrToCanvas(canvas, formatLineCode(q.line), 220);
         card.appendChild(canvas);
 
         const label = document.createElement('div');
@@ -3302,9 +3303,9 @@
         const codes = await qrBarcodeDetector.detect(video);
         if (codes.length > 0) {
           const raw = codes[0].rawValue;
-          const matched = settings.qrCodes.find(q => q.token === raw.trim());
-          if (matched) {
-            handleQrMatch(matched);
+          const line = parseLineCode(raw);
+          if (line) {
+            handleQrMatch(line);
             return; // stop the loop — closeQrScanner() cancels remaining RAF
           } else {
             status.textContent = 'Unrecognized code — not a line QR label';
@@ -3317,10 +3318,10 @@
   }
 
   // Shared resolution logic — used by both QR scans and NFC taps, since
-  // both ultimately resolve an opaque token to a line and fill/start.
-  function handleTokenMatch(q) {
+  // both ultimately resolve a parsed line value and fill/start.
+  function handleLineMatch(line) {
     if (navigator.vibrate) navigator.vibrate(40);
-    lineInput.value = q.line;
+    lineInput.value = line;
     // only auto-start if the timer is currently idle — never hijack a run in progress
     if (state === 'idle') {
       startTimer();
@@ -3329,9 +3330,9 @@
     }
   }
 
-  function handleQrMatch(q) {
+  function handleQrMatch(line) {
     closeQrScanner();
-    handleTokenMatch(q);
+    handleLineMatch(line);
   }
 
   function closeQrScanner() {
@@ -3421,10 +3422,10 @@
 
     if (!text) { setNfcStatus('Tag has no readable text data.', true); return; }
 
-    const matched = settings.qrCodes.find(q => q.token === text);
-    if (matched) {
-      setNfcStatus(`Matched: ${matched.line}`, false);
-      handleTokenMatch(matched);
+    const line = parseLineCode(text);
+    if (line) {
+      setNfcStatus(`Matched: ${line}`, false);
+      handleLineMatch(line);
       setTimeout(() => setNfcStatus(nfcAutoArmed ? 'Ready — tap a line NFC tag anytime' : '', false), 2000);
     } else {
       setNfcStatus('Unrecognized tag — not a line NFC label.', true);
@@ -3464,7 +3465,7 @@
     try {
       const writer = new NDEFReader();
       await writer.write({
-        records: [{ recordType: 'text', data: q.token }]
+        records: [{ recordType: 'text', data: formatLineCode(q.line) }]
       });
       alert(`Tag written successfully for "${q.line}".`);
     } catch (err) {
