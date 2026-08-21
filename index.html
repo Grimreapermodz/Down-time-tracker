@@ -556,22 +556,6 @@
     }
     .btn-select-all:hover { border-color: var(--accent); color: var(--accent); }
 
-    .select-toolbar-entry { margin-bottom: 14px; }
-    .btn-select-mode {
-      font-family: var(--mono);
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--muted);
-      border-radius: 4px;
-      padding: 8px 14px;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .btn-select-mode:hover { border-color: var(--accent); color: var(--accent); }
     .btn-cancel-select {
       font-family: var(--mono);
       font-size: 10px;
@@ -586,17 +570,65 @@
     }
     .btn-cancel-select:hover { border-color: var(--text); color: var(--text); }
 
+    /* long-press visual feedback on entries (select mode not yet active) */
+    .log-entry {
+      -webkit-user-select: none;
+      user-select: none;
+      transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    }
+    .log-entry.press-active {
+      background: #241417;
+      border-color: var(--danger);
+      transform: scale(0.985);
+    }
+    .select-mode-hint {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: #3d4251;
+      text-align: center;
+      padding: 6px 0 10px;
+    }
+
     /* ── FILTERS ── */
+    .btn-filter-toggle {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 4px;
+      padding: 5px 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .btn-filter-toggle:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-filter-toggle.active { border-color: var(--accent); color: var(--accent); background: #211a0d; }
+
+    .filter-panel {
+      display: none;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px;
+      margin-bottom: 16px;
+    }
+    .filter-panel.open { display: block; }
+
     .filter-row {
       display: flex;
       gap: 8px;
       margin-bottom: 10px;
       flex-wrap: wrap;
     }
+    .filter-row:last-of-type { margin-bottom: 0; }
     .filter-input, .filter-select {
       flex: 1;
       min-width: 120px;
-      background: var(--bg);
+      background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 4px;
       color: var(--text);
@@ -607,6 +639,21 @@
       -webkit-appearance: none;
     }
     .filter-input:focus, .filter-select:focus { border-color: var(--accent); }
+    .filter-date-field {
+      flex: 1;
+      min-width: 120px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .filter-date-field label {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .filter-date-field .filter-input { width: 100%; }
     input.filter-input[type="date"] { font-family: var(--mono); font-size: 12px; color-scheme: dark; }
     .btn-clear-filters {
       font-family: var(--mono);
@@ -619,7 +666,7 @@
       border-radius: 4px;
       padding: 5px 10px;
       cursor: pointer;
-      margin-bottom: 14px;
+      margin-top: 4px;
     }
     .btn-clear-filters:hover { border-color: var(--danger); color: var(--danger); }
     .filter-no-results {
@@ -1102,19 +1149,22 @@
   <div class="card">
     <div class="log-header">
       <h2>Today's Log</h2>
-      <span class="log-count" id="log-count"></span>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span class="log-count" id="log-count"></span>
+        <button class="btn-filter-toggle" id="btn-filter-toggle-today" onclick="toggleFilterPanel('today')">⚲ Filter</button>
+      </div>
     </div>
 
-    <div class="filter-row">
-      <input type="text" class="filter-input" id="filter-line-today" placeholder="Filter by line…" oninput="onFilterChange('today')"/>
-      <select class="filter-select" id="filter-reason-today" onchange="onFilterChange('today')">
-        <option value="">All reasons</option>
-      </select>
+    <div class="filter-panel" id="filter-panel-today">
+      <div class="filter-row">
+        <input type="text" class="filter-input" id="filter-line-today" placeholder="Filter by line…" oninput="onFilterChange('today')"/>
+        <select class="filter-select" id="filter-reason-today" onchange="onFilterChange('today')">
+          <option value="">All reasons</option>
+        </select>
+      </div>
+      <button class="btn-clear-filters" id="btn-clear-filters-today" onclick="clearFilters('today')" style="display:none;">✕ Clear filters</button>
     </div>
 
-    <div class="select-toolbar-entry" id="select-toolbar-entry-today">
-      <button class="btn-select-mode" onclick="enterSelectMode('today')">☑ Select</button>
-    </div>
     <div class="select-toolbar" id="log-select-toolbar" style="display:none;">
       <div class="select-toolbar-left">
         <button class="btn-select-all" id="btn-select-all-today" onclick="toggleSelectAll('today')">Select All</button>
@@ -1138,24 +1188,32 @@
   <div class="card">
     <div class="log-header">
       <h2>Full History</h2>
-      <span class="log-count" id="history-count"></span>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span class="log-count" id="history-count"></span>
+        <button class="btn-filter-toggle" id="btn-filter-toggle-history" onclick="toggleFilterPanel('history')">⚲ Filter</button>
+      </div>
     </div>
 
-    <div class="filter-row">
-      <input type="text" class="filter-input" id="filter-line-history" placeholder="Filter by line…" oninput="onFilterChange('history')"/>
-      <select class="filter-select" id="filter-reason-history" onchange="onFilterChange('history')">
-        <option value="">All reasons</option>
-      </select>
+    <div class="filter-panel" id="filter-panel-history">
+      <div class="filter-row">
+        <input type="text" class="filter-input" id="filter-line-history" placeholder="Filter by line…" oninput="onFilterChange('history')"/>
+        <select class="filter-select" id="filter-reason-history" onchange="onFilterChange('history')">
+          <option value="">All reasons</option>
+        </select>
+      </div>
+      <div class="filter-row">
+        <div class="filter-date-field">
+          <label for="filter-date-from">Start date</label>
+          <input type="date" class="filter-input" id="filter-date-from" onchange="onFilterChange('history')"/>
+        </div>
+        <div class="filter-date-field">
+          <label for="filter-date-to">End date</label>
+          <input type="date" class="filter-input" id="filter-date-to" onchange="onFilterChange('history')"/>
+        </div>
+      </div>
+      <button class="btn-clear-filters" id="btn-clear-filters-history" onclick="clearFilters('history')" style="display:none;">✕ Clear filters</button>
     </div>
-    <div class="filter-row">
-      <input type="date" class="filter-input" id="filter-date-from" onchange="onFilterChange('history')"/>
-      <input type="date" class="filter-input" id="filter-date-to" onchange="onFilterChange('history')"/>
-    </div>
-    <button class="btn-clear-filters" id="btn-clear-filters-history" onclick="clearFilters('history')" style="display:none;">✕ Clear filters</button>
 
-    <div class="select-toolbar-entry" id="select-toolbar-entry-history">
-      <button class="btn-select-mode" onclick="enterSelectMode('history')">☑ Select</button>
-    </div>
     <div class="select-toolbar" id="history-select-toolbar" style="display:none;">
       <div class="select-toolbar-left">
         <button class="btn-select-all" id="btn-select-all-history" onclick="toggleSelectAll('history')">Select All</button>
@@ -1729,7 +1787,15 @@
       filters.history.dateTo   = document.getElementById('filter-date-to').value;
     }
     updateClearFiltersVisibility(scope);
+    updateFilterToggleState(scope);
     if (scope === 'today') renderLog(); else renderHistory();
+  }
+
+  function updateFilterToggleState(scope) {
+    const btn = document.getElementById(`btn-filter-toggle-${scope}`);
+    const panel = document.getElementById(`filter-panel-${scope}`);
+    const panelOpen = panel.classList.contains('open');
+    btn.classList.toggle('active', panelOpen || hasActiveFilters(scope));
   }
 
   function hasActiveFilters(scope) {
@@ -1740,9 +1806,8 @@
   }
 
   function updateClearFiltersVisibility(scope) {
-    if (scope !== 'history') return; // only History shows a visible clear-filters button
-    const btn = document.getElementById('btn-clear-filters-history');
-    btn.style.display = hasActiveFilters('history') ? 'inline-block' : 'none';
+    const btn = document.getElementById(`btn-clear-filters-${scope}`);
+    if (btn) btn.style.display = hasActiveFilters(scope) ? 'inline-block' : 'none';
   }
 
   function clearFilters(scope) {
@@ -1756,6 +1821,7 @@
       document.getElementById('filter-date-to').value = '';
     }
     updateClearFiltersVisibility(scope);
+    updateFilterToggleState(scope);
     if (scope === 'today') renderLog(); else renderHistory();
   }
 
@@ -1770,22 +1836,105 @@
   }
 
   // ── SELECT MODE ──────────────────────────────────────────────
-  function enterSelectMode(scope) {
+  function enterSelectMode(scope, initialId) {
     if (scope === 'today') selectModeToday = true; else selectModeHistory = true;
-    document.getElementById(`select-toolbar-entry-${scope}`).style.display = 'none';
     document.getElementById(scope === 'today' ? 'log-select-toolbar' : 'history-select-toolbar').style.display = 'flex';
     document.getElementById(scope === 'today' ? 'log-list' : 'history-list').classList.add('select-mode');
+    if (initialId !== undefined) {
+      const set = scope === 'today' ? selectedTodayIds : selectedHistoryIds;
+      set.add(initialId);
+    }
+    if (scope === 'today') renderLog(); else renderHistory();
     updateSelectToolbar(scope);
   }
 
   function exitSelectMode(scope) {
     if (scope === 'today') { selectModeToday = false; selectedTodayIds.clear(); }
     else { selectModeHistory = false; selectedHistoryIds.clear(); }
-    document.getElementById(`select-toolbar-entry-${scope}`).style.display = 'block';
     document.getElementById(scope === 'today' ? 'log-select-toolbar' : 'history-select-toolbar').style.display = 'none';
     const listEl = document.getElementById(scope === 'today' ? 'log-list' : 'history-list');
     listEl.classList.remove('select-mode');
     if (scope === 'today') renderLog(); else renderHistory();
+  }
+
+  // ── LONG PRESS TO SELECT ──────────────────────────────────────
+  const LONG_PRESS_MS = 500;
+  const LONG_PRESS_MOVE_TOLERANCE = 10; // px — cancel if finger drifts (scrolling)
+  let pressTimer = null;
+  let pressStartXY = null;
+  let pressEntryEl = null;
+
+  function bindLongPress(containerEl, scope) {
+    containerEl.querySelectorAll('.log-entry').forEach(entryEl => {
+      // avoid double-binding across re-renders (innerHTML replace already
+      // clears old listeners, so this is just defensive)
+      entryEl.addEventListener('touchstart', (ev) => onPressStart(ev, entryEl, scope), { passive: true });
+      entryEl.addEventListener('touchend',   onPressEnd, { passive: true });
+      entryEl.addEventListener('touchmove',  onPressMove, { passive: true });
+      entryEl.addEventListener('touchcancel', onPressEnd, { passive: true });
+      entryEl.addEventListener('mousedown',  (ev) => onPressStart(ev, entryEl, scope));
+      entryEl.addEventListener('mouseup',    onPressEnd);
+      entryEl.addEventListener('mouseleave', onPressEnd);
+
+      // while in select mode, a normal tap on the row (outside interactive
+      // controls) toggles selection, matching the checkbox behavior
+      entryEl.addEventListener('click', (ev) => {
+        const inSelectMode = scope === 'today' ? selectModeToday : selectModeHistory;
+        if (!inSelectMode) return;
+        if (ev.target.closest('.log-checkbox, .btn-edit, .btn-log-save, .btn-log-cancel, input, textarea, button')) return;
+        const id = Number(entryEl.dataset.id);
+        toggleSelect(id, scope);
+      });
+    });
+  }
+
+  function onPressStart(ev, entryEl, scope) {
+    // ignore presses starting on interactive elements so normal taps
+    // (edit, inputs, checkbox) are never hijacked into a long-press
+    if (ev.target.closest('.log-checkbox, .btn-edit, .btn-log-save, .btn-log-cancel, input, textarea, button')) return;
+
+    const inSelectMode = scope === 'today' ? selectModeToday : selectModeHistory;
+    if (inSelectMode) return; // taps handle selection once already in select mode
+
+    const point = ev.touches ? ev.touches[0] : ev;
+    pressStartXY = { x: point.clientX, y: point.clientY };
+    pressEntryEl = entryEl;
+
+    clearTimeout(pressTimer);
+    pressTimer = setTimeout(() => {
+      entryEl.classList.remove('press-active');
+      const id = Number(entryEl.dataset.id);
+      if (navigator.vibrate) navigator.vibrate(30);
+      enterSelectMode(scope, id);
+    }, LONG_PRESS_MS);
+
+    entryEl.classList.add('press-active');
+  }
+
+  function onPressMove(ev) {
+    if (!pressStartXY) return;
+    const point = ev.touches ? ev.touches[0] : ev;
+    const dx = Math.abs(point.clientX - pressStartXY.x);
+    const dy = Math.abs(point.clientY - pressStartXY.y);
+    if (dx > LONG_PRESS_MOVE_TOLERANCE || dy > LONG_PRESS_MOVE_TOLERANCE) {
+      onPressEnd();
+    }
+  }
+
+  function onPressEnd() {
+    clearTimeout(pressTimer);
+    pressTimer = null;
+    pressStartXY = null;
+    if (pressEntryEl) pressEntryEl.classList.remove('press-active');
+    pressEntryEl = null;
+  }
+
+  // ── FILTER PANEL ────────────────────────────────────────────
+  function toggleFilterPanel(scope) {
+    const panel = document.getElementById(`filter-panel-${scope}`);
+    const btn = document.getElementById(`btn-filter-toggle-${scope}`);
+    const isOpen = panel.classList.toggle('open');
+    btn.classList.toggle('active', isOpen);
   }
 
   // ── SELECTION / DELETE ──────────────────────────────────────
@@ -1931,7 +2080,6 @@
     const allToday = entries.filter(e => !e.hiddenFromMain && isSameDay(e.ts, new Date()));
     const todayEntries = applyFilters(allToday, filters.today, 'today');
     const toolbar = document.getElementById('log-select-toolbar');
-    const entryToolbar = document.getElementById('select-toolbar-entry-today');
 
     // keep the select-mode class on the list container in sync across re-renders
     logList.classList.toggle('select-mode', selectModeToday);
@@ -1941,11 +2089,9 @@
       logEmpty.textContent = 'No entries yet today. Start a timer to log downtime.';
       logCount.textContent = '';
       toolbar.style.display = 'none';
-      entryToolbar.style.display = 'none';
       return;
     }
 
-    entryToolbar.style.display = selectModeToday ? 'none' : 'block';
     toolbar.style.display = selectModeToday ? 'flex' : 'none';
 
     if (!todayEntries.length) {
@@ -1959,8 +2105,10 @@
       ? `${todayEntries.length} of ${allToday.length}`
       : todayEntries.length + (todayEntries.length === 1 ? ' entry' : ' entries');
 
-    logList.innerHTML = todayEntries.map(e => renderEntryHTML(e, 'today')).join('');
+    logList.innerHTML = todayEntries.map(e => renderEntryHTML(e, 'today')).join('')
+      + (selectModeToday ? '' : '<div class="select-mode-hint">Press and hold an entry to select</div>');
     logList.classList.toggle('select-mode', selectModeToday);
+    bindLongPress(logList, 'today');
 
     if (selectModeToday) {
       updateSelectToolbar('today');
@@ -1973,7 +2121,6 @@
   function renderHistory() {
     const filteredEntries = getHistoryEntries();
     const toolbar = document.getElementById('history-select-toolbar');
-    const entryToolbar = document.getElementById('select-toolbar-entry-history');
 
     historyList.classList.toggle('select-mode', selectModeHistory);
 
@@ -1981,11 +2128,9 @@
       historyList.innerHTML = ''; historyList.appendChild(historyEmpty);
       historyCount.textContent = '';
       toolbar.style.display = 'none';
-      entryToolbar.style.display = 'none';
       return;
     }
 
-    entryToolbar.style.display = selectModeHistory ? 'none' : 'block';
     toolbar.style.display = selectModeHistory ? 'flex' : 'none';
 
     if (!filteredEntries.length) {
@@ -2021,8 +2166,9 @@
 
       return `<div class="history-day-header">${label}</div>` +
         g.items.map(e => renderEntryHTML(e, 'history')).join('');
-    }).join('');
+    }).join('') + (selectModeHistory ? '' : '<div class="select-mode-hint">Press and hold an entry to select</div>');
     historyList.classList.toggle('select-mode', selectModeHistory);
+    bindLongPress(historyList, 'history');
 
     if (selectModeHistory) {
       updateSelectToolbar('history');

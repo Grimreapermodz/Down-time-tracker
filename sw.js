@@ -1,7 +1,7 @@
 // sw.js — Line Downtime Tracker Service Worker
 // Bump this version string any time you deploy an update.
 // The update banner in the app will appear automatically.
-const CACHE = 'downtime-tracker-v14';
+const CACHE = 'downtime-tracker-v15';
 
 const ASSETS = [
   './',
