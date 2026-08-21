@@ -453,6 +453,195 @@
       .card { padding: 20px 16px; }
     }
 
+    /* ── TAB NAV ── */
+    .tab-nav {
+      width: 100%;
+      max-width: 640px;
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .tab-btn {
+      flex: 1;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 6px;
+      padding: 12px 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tab-btn.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: #211a0d;
+    }
+    .tab-view { display: none; width: 100%; max-width: 640px; }
+    .tab-view.active { display: block; }
+
+    /* ── SELECTABLE LOG ENTRIES ── */
+    .log-select-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .log-checkbox {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--danger);
+      flex-shrink: 0;
+      cursor: pointer;
+      display: none; /* hidden until the list is in select mode */
+    }
+    #log-list.select-mode .log-checkbox,
+    #history-list.select-mode .log-checkbox {
+      display: block;
+    }
+    /* hide the per-entry Edit button while selecting, to avoid accidental taps */
+    #log-list.select-mode .btn-edit,
+    #history-list.select-mode .btn-edit {
+      display: none;
+    }
+    .log-entry.selected {
+      border-color: var(--danger);
+      background: #1a1113;
+    }
+    .btn-delete-selected {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      background: var(--danger);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 5px 12px;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn-delete-selected:disabled { opacity: 0.3; cursor: not-allowed; }
+    .select-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .select-toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-select-all {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .btn-select-all:hover { border-color: var(--accent); color: var(--accent); }
+
+    .select-toolbar-entry { margin-bottom: 14px; }
+    .btn-select-mode {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 4px;
+      padding: 8px 14px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-select-mode:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-cancel-select {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 4px;
+      padding: 5px 12px;
+      cursor: pointer;
+    }
+    .btn-cancel-select:hover { border-color: var(--text); color: var(--text); }
+
+    /* ── FILTERS ── */
+    .filter-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .filter-input, .filter-select {
+      flex: 1;
+      min-width: 120px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 13px;
+      padding: 8px 10px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    .filter-input:focus, .filter-select:focus { border-color: var(--accent); }
+    input.filter-input[type="date"] { font-family: var(--mono); font-size: 12px; color-scheme: dark; }
+    .btn-clear-filters {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 4px;
+      padding: 5px 10px;
+      cursor: pointer;
+      margin-bottom: 14px;
+    }
+    .btn-clear-filters:hover { border-color: var(--danger); color: var(--danger); }
+    .filter-no-results {
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+      padding: 20px 0;
+      font-family: var(--mono);
+    }
+
+    .history-day-header {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin: 20px 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .history-day-header:first-child { margin-top: 0; }
+
     /* ── SETTINGS MODAL ── */
     #settings-overlay {
       display: none;
@@ -853,67 +1042,136 @@
   <button id="btn-settings" onclick="openSettings()" aria-label="Settings" style="background:none;border:1px solid var(--border);border-radius:6px;width:40px;height:40px;color:var(--muted);font-size:18px;cursor:pointer;flex-shrink:0;">⚙</button>
 </header>
 
-<div class="card">
-  <div class="field">
-    <label for="line-number">Line Number</label>
-    <input type="text" id="line-number" placeholder="e.g. Line 4, Station B" autocomplete="off"/>
-    <div id="recent-lines-row" style="display:none; flex-wrap:wrap; gap:6px; margin-top:8px;"></div>
-  </div>
-
-  <div class="status-row">
-    <span class="pill idle" id="status-pill">Idle</span>
-  </div>
-
-  <div class="timers-grid">
-    <div class="timer-block">
-      <div class="timer-block-label">Downtime</div>
-      <div class="timer-block-value dim" id="disp-down">00:00:00</div>
-    </div>
-    <div class="timer-block">
-      <div class="timer-block-label">Paused</div>
-      <div class="timer-block-value dim" id="disp-pause">00:00:00</div>
-    </div>
-    <div class="timer-block total-block">
-      <div class="timer-block-label">Total Time</div>
-      <div class="timer-block-value" id="disp-total">00:00:00</div>
-    </div>
-  </div>
-
-  <div class="pause-panel" id="pause-panel">
-    <div class="pause-panel-label">Pause reason</div>
-    <div class="pause-type-row" id="pause-type-row"></div>
-  </div>
-
-  <div class="btn-row" style="margin-bottom: 20px;">
-    <button class="btn btn-start"  id="btn-start"  onclick="startTimer()">▶ Start</button>
-    <button class="btn btn-pause"  id="btn-pause"  onclick="pauseTimer()"  disabled>⏸ Pause</button>
-    <button class="btn btn-resume" id="btn-resume" onclick="resumeTimer()" disabled style="display:none;">▶ Resume</button>
-    <button class="btn btn-stop"   id="btn-stop"   onclick="stopTimer()"   disabled>■ Stop</button>
-    <button class="btn btn-reset"  id="btn-reset"  onclick="resetTimer()"  disabled>↺ Reset</button>
-  </div>
-
-  <div id="issue-block" style="display:none;">
-    <div class="field">
-      <label for="issue-notes">What went wrong?</label>
-      <textarea id="issue-notes" placeholder="Describe the issue — jam, mechanical fault, quality hold, etc."></textarea>
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-save" id="btn-save" onclick="saveEntry()" disabled>✓ Save Entry</button>
-    </div>
-  </div>
+<div class="tab-nav">
+  <button class="tab-btn active" id="tab-btn-today" onclick="switchTab('today')">Today</button>
+  <button class="tab-btn" id="tab-btn-history" onclick="switchTab('history')">History</button>
 </div>
 
-<div class="card">
-  <div class="log-header">
-    <h2>Downtime Log</h2>
-    <div style="display:flex;align-items:center;gap:12px;">
-      <span class="log-count" id="log-count"></span>
-      <button class="btn-clear" onclick="clearLog()">Clear</button>
+<div class="tab-view active" id="tab-view-today">
+
+  <div class="card">
+    <div class="field">
+      <label for="line-number">Line Number</label>
+      <input type="text" id="line-number" placeholder="e.g. Line 4, Station B" autocomplete="off"/>
+      <div id="recent-lines-row" style="display:none; flex-wrap:wrap; gap:6px; margin-top:8px;"></div>
+    </div>
+
+    <div class="status-row">
+      <span class="pill idle" id="status-pill">Idle</span>
+    </div>
+
+    <div class="timers-grid">
+      <div class="timer-block">
+        <div class="timer-block-label">Downtime</div>
+        <div class="timer-block-value dim" id="disp-down">00:00:00</div>
+      </div>
+      <div class="timer-block">
+        <div class="timer-block-label">Paused</div>
+        <div class="timer-block-value dim" id="disp-pause">00:00:00</div>
+      </div>
+      <div class="timer-block total-block">
+        <div class="timer-block-label">Total Time</div>
+        <div class="timer-block-value" id="disp-total">00:00:00</div>
+      </div>
+    </div>
+
+    <div class="pause-panel" id="pause-panel">
+      <div class="pause-panel-label">Pause reason</div>
+      <div class="pause-type-row" id="pause-type-row"></div>
+    </div>
+
+    <div class="btn-row" style="margin-bottom: 20px;">
+      <button class="btn btn-start"  id="btn-start"  onclick="startTimer()">▶ Start</button>
+      <button class="btn btn-pause"  id="btn-pause"  onclick="pauseTimer()"  disabled>⏸ Pause</button>
+      <button class="btn btn-resume" id="btn-resume" onclick="resumeTimer()" disabled style="display:none;">▶ Resume</button>
+      <button class="btn btn-stop"   id="btn-stop"   onclick="stopTimer()"   disabled>■ Stop</button>
+      <button class="btn btn-reset"  id="btn-reset"  onclick="resetTimer()"  disabled>↺ Reset</button>
+    </div>
+
+    <div id="issue-block" style="display:none;">
+      <div class="field">
+        <label for="issue-notes">What went wrong?</label>
+        <textarea id="issue-notes" placeholder="Describe the issue — jam, mechanical fault, quality hold, etc."></textarea>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-save" id="btn-save" onclick="saveEntry()" disabled>✓ Save Entry</button>
+      </div>
     </div>
   </div>
-  <div id="log-list">
-    <div class="log-empty" id="log-empty">No entries yet. Start a timer to log downtime.</div>
+
+  <div class="card">
+    <div class="log-header">
+      <h2>Today's Log</h2>
+      <span class="log-count" id="log-count"></span>
+    </div>
+
+    <div class="filter-row">
+      <input type="text" class="filter-input" id="filter-line-today" placeholder="Filter by line…" oninput="onFilterChange('today')"/>
+      <select class="filter-select" id="filter-reason-today" onchange="onFilterChange('today')">
+        <option value="">All reasons</option>
+      </select>
+    </div>
+
+    <div class="select-toolbar-entry" id="select-toolbar-entry-today">
+      <button class="btn-select-mode" onclick="enterSelectMode('today')">☑ Select</button>
+    </div>
+    <div class="select-toolbar" id="log-select-toolbar" style="display:none;">
+      <div class="select-toolbar-left">
+        <button class="btn-select-all" id="btn-select-all-today" onclick="toggleSelectAll('today')">Select All</button>
+        <span id="log-selected-count"></span>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn-delete-selected" id="btn-delete-selected-today" onclick="deleteSelected('today')" disabled>Delete Selected</button>
+        <button class="btn-cancel-select" onclick="exitSelectMode('today')">Cancel</button>
+      </div>
+    </div>
+
+    <div id="log-list">
+      <div class="log-empty" id="log-empty">No entries yet today. Start a timer to log downtime.</div>
+    </div>
   </div>
+
+</div>
+
+<div class="tab-view" id="tab-view-history">
+
+  <div class="card">
+    <div class="log-header">
+      <h2>Full History</h2>
+      <span class="log-count" id="history-count"></span>
+    </div>
+
+    <div class="filter-row">
+      <input type="text" class="filter-input" id="filter-line-history" placeholder="Filter by line…" oninput="onFilterChange('history')"/>
+      <select class="filter-select" id="filter-reason-history" onchange="onFilterChange('history')">
+        <option value="">All reasons</option>
+      </select>
+    </div>
+    <div class="filter-row">
+      <input type="date" class="filter-input" id="filter-date-from" onchange="onFilterChange('history')"/>
+      <input type="date" class="filter-input" id="filter-date-to" onchange="onFilterChange('history')"/>
+    </div>
+    <button class="btn-clear-filters" id="btn-clear-filters-history" onclick="clearFilters('history')" style="display:none;">✕ Clear filters</button>
+
+    <div class="select-toolbar-entry" id="select-toolbar-entry-history">
+      <button class="btn-select-mode" onclick="enterSelectMode('history')">☑ Select</button>
+    </div>
+    <div class="select-toolbar" id="history-select-toolbar" style="display:none;">
+      <div class="select-toolbar-left">
+        <button class="btn-select-all" id="btn-select-all-history" onclick="toggleSelectAll('history')">Select All</button>
+        <span id="history-selected-count"></span>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn-delete-selected" id="btn-delete-selected-history" onclick="deleteSelected('history')" disabled>Delete Selected</button>
+        <button class="btn-cancel-select" onclick="exitSelectMode('history')">Cancel</button>
+      </div>
+    </div>
+
+    <div id="history-list">
+      <div class="log-empty" id="history-empty">No history yet.</div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -924,8 +1182,17 @@
   let segStart     = null;
   let pauseType    = null;
   let tickInterval = null;
-  let entries      = [];
+  let entries      = []; // full history, append-only unless explicitly deleted from History tab
   let startedAt    = null;
+  let selectedTodayIds   = new Set();
+  let selectedHistoryIds = new Set();
+  let currentTab = 'today';
+  let selectModeToday   = false;
+  let selectModeHistory = false;
+  let filters = {
+    today:   { line: '', reason: '' },
+    history: { line: '', reason: '', dateFrom: '', dateTo: '' }
+  };
 
   // ── SETTINGS / ALERTS ────────────────────────────────────────
   const PAUSE_COLOR_PALETTE = ['#9b6dff', '#4a90d9', '#e84444', '#f5a623', '#2ecc71', '#e055c3', '#5fd4c4', '#c9a227'];
@@ -971,6 +1238,9 @@
   const logList    = document.getElementById('log-list');
   const logEmpty   = document.getElementById('log-empty');
   const logCount   = document.getElementById('log-count');
+  const historyList  = document.getElementById('history-list');
+  const historyEmpty = document.getElementById('history-empty');
+  const historyCount = document.getElementById('history-count');
 
   // ── PERSISTENCE ───────────────────────────────────────────
   function saveEntriesToStorage() {
@@ -983,9 +1253,9 @@
         entries = JSON.parse(raw).map(e => ({
           ...e,
           ts: new Date(e.ts),
-          startedAt: e.startedAt ? new Date(e.startedAt) : null
+          startedAt: e.startedAt ? new Date(e.startedAt) : null,
+          hiddenFromMain: e.hiddenFromMain || false
         }));
-        renderLog();
       }
     } catch(e) {}
   }
@@ -1014,6 +1284,9 @@
   }
   loadRecentLinesFromStorage();
   renderRecentLines();
+  populateReasonFilterOptions();
+  renderLog();
+  renderHistory();
 
   function addRecentLine(line) {
     if (!line) return;
@@ -1276,28 +1549,31 @@
       line: lineVal,
       issue: issueNotes.value.trim(),
       down: downElapsed, pause: pauseElapsed, total: downElapsed + pauseElapsed,
-      pType: pauseType, startedAt: startedAt, ts: new Date()
+      pType: pauseType, startedAt: startedAt, ts: new Date(),
+      hiddenFromMain: false
     });
     saveEntriesToStorage();
     addRecentLine(lineVal);
     renderRecentLines();
     clearDraftIssue();
-    renderLog(); resetTimer();
+    renderLog(); renderHistory(); resetTimer();
   }
 
   // ── LOG EDITING ───────────────────────────────────────────
-  function toggleEdit(idx) {
-    const entry = document.querySelector(`.log-entry[data-idx="${idx}"]`);
+  function toggleEdit(id) {
+    const entry = document.querySelector(`.log-entry[data-id="${id}"]`);
+    if (!entry) return;
     const isEditing = entry.classList.contains('editing');
     if (isEditing) {
-      cancelEdit(idx);
+      cancelEdit(id);
     } else {
-      openEdit(idx);
+      openEdit(id);
     }
   }
 
-  function openEdit(idx) {
-    const entry = document.querySelector(`.log-entry[data-idx="${idx}"]`);
+  function openEdit(id) {
+    const entry = document.querySelector(`.log-entry[data-id="${id}"]`);
+    if (!entry) return;
     entry.classList.add('editing');
 
     const editBtn    = entry.querySelector('.btn-edit');
@@ -1324,13 +1600,15 @@
     });
   }
 
-  function cancelEdit(idx) {
-    renderLog(); // just re-render to restore view state
+  function cancelEdit(id) {
+    renderLog(); renderHistory(); // just re-render to restore view state on both tabs
   }
 
-  function saveEdit(idx) {
-    const entry  = document.querySelector(`.log-entry[data-idx="${idx}"]`);
-    const e      = entries[idx];
+  function saveEdit(id) {
+    const entry = document.querySelector(`.log-entry[data-id="${id}"]`);
+    const idx   = entries.findIndex(en => en.id === id);
+    if (!entry || idx === -1) return;
+    const e = entries[idx];
 
     // line
     const lineVal = entry.querySelector('.edit-line').value.trim();
@@ -1390,13 +1668,178 @@
     };
 
     saveEntriesToStorage();
-    renderLog();
+    renderLog(); renderHistory();
   }
 
-  // ── LOG RENDER ────────────────────────────────────────────
-  function clearLog() {
-    if (!entries.length) return;
-    if (confirm('Clear all log entries?')) { entries = []; saveEntriesToStorage(); renderLog(); }
+  // ── DATE / FILTER HELPERS ──────────────────────────────────
+  function isSameDay(a, b) {
+    return a.getFullYear() === b.getFullYear() &&
+           a.getMonth() === b.getMonth() &&
+           a.getDate() === b.getDate();
+  }
+
+  function getTodayEntries() {
+    const now = new Date();
+    const base = entries.filter(e => !e.hiddenFromMain && isSameDay(e.ts, now));
+    return applyFilters(base, filters.today, 'today');
+  }
+
+  function getHistoryEntries() {
+    return applyFilters(entries, filters.history, 'history');
+  }
+
+  function applyFilters(list, f, scope) {
+    let out = list;
+    if (f.line && f.line.trim()) {
+      const q = f.line.trim().toLowerCase();
+      out = out.filter(e => (e.line || '').toLowerCase().includes(q));
+    }
+    if (f.reason) {
+      out = out.filter(e => e.pType === f.reason);
+    }
+    if (scope === 'history') {
+      if (f.dateFrom) {
+        const from = new Date(f.dateFrom + 'T00:00:00');
+        out = out.filter(e => e.ts >= from);
+      }
+      if (f.dateTo) {
+        const to = new Date(f.dateTo + 'T23:59:59');
+        out = out.filter(e => e.ts <= to);
+      }
+    }
+    return out;
+  }
+
+  function populateReasonFilterOptions() {
+    ['today', 'history'].forEach(scope => {
+      const sel = document.getElementById(`filter-reason-${scope}`);
+      const current = sel.value;
+      sel.innerHTML = '<option value="">All reasons</option>' +
+        settings.pauseTypes.map(pt => `<option value="${escHtml(pt.id)}">${pt.icon} ${escHtml(pt.label)}</option>`).join('');
+      // restore selection if it still exists
+      if ([...sel.options].some(o => o.value === current)) sel.value = current;
+    });
+  }
+
+  function onFilterChange(scope) {
+    filters[scope].line = document.getElementById(`filter-line-${scope}`).value;
+    filters[scope].reason = document.getElementById(`filter-reason-${scope}`).value;
+    if (scope === 'history') {
+      filters.history.dateFrom = document.getElementById('filter-date-from').value;
+      filters.history.dateTo   = document.getElementById('filter-date-to').value;
+    }
+    updateClearFiltersVisibility(scope);
+    if (scope === 'today') renderLog(); else renderHistory();
+  }
+
+  function hasActiveFilters(scope) {
+    const f = filters[scope];
+    if (f.line || f.reason) return true;
+    if (scope === 'history' && (f.dateFrom || f.dateTo)) return true;
+    return false;
+  }
+
+  function updateClearFiltersVisibility(scope) {
+    if (scope !== 'history') return; // only History shows a visible clear-filters button
+    const btn = document.getElementById('btn-clear-filters-history');
+    btn.style.display = hasActiveFilters('history') ? 'inline-block' : 'none';
+  }
+
+  function clearFilters(scope) {
+    filters[scope] = scope === 'today'
+      ? { line: '', reason: '' }
+      : { line: '', reason: '', dateFrom: '', dateTo: '' };
+    document.getElementById(`filter-line-${scope}`).value = '';
+    document.getElementById(`filter-reason-${scope}`).value = '';
+    if (scope === 'history') {
+      document.getElementById('filter-date-from').value = '';
+      document.getElementById('filter-date-to').value = '';
+    }
+    updateClearFiltersVisibility(scope);
+    if (scope === 'today') renderLog(); else renderHistory();
+  }
+
+  // ── TAB SWITCHING ──────────────────────────────────────────
+  function switchTab(tab) {
+    currentTab = tab;
+    document.getElementById('tab-btn-today').classList.toggle('active', tab === 'today');
+    document.getElementById('tab-btn-history').classList.toggle('active', tab === 'history');
+    document.getElementById('tab-view-today').classList.toggle('active', tab === 'today');
+    document.getElementById('tab-view-history').classList.toggle('active', tab === 'history');
+    if (tab === 'history') renderHistory();
+  }
+
+  // ── SELECT MODE ──────────────────────────────────────────────
+  function enterSelectMode(scope) {
+    if (scope === 'today') selectModeToday = true; else selectModeHistory = true;
+    document.getElementById(`select-toolbar-entry-${scope}`).style.display = 'none';
+    document.getElementById(scope === 'today' ? 'log-select-toolbar' : 'history-select-toolbar').style.display = 'flex';
+    document.getElementById(scope === 'today' ? 'log-list' : 'history-list').classList.add('select-mode');
+    updateSelectToolbar(scope);
+  }
+
+  function exitSelectMode(scope) {
+    if (scope === 'today') { selectModeToday = false; selectedTodayIds.clear(); }
+    else { selectModeHistory = false; selectedHistoryIds.clear(); }
+    document.getElementById(`select-toolbar-entry-${scope}`).style.display = 'block';
+    document.getElementById(scope === 'today' ? 'log-select-toolbar' : 'history-select-toolbar').style.display = 'none';
+    const listEl = document.getElementById(scope === 'today' ? 'log-list' : 'history-list');
+    listEl.classList.remove('select-mode');
+    if (scope === 'today') renderLog(); else renderHistory();
+  }
+
+  // ── SELECTION / DELETE ──────────────────────────────────────
+  function toggleSelect(id, scope) {
+    const set = scope === 'today' ? selectedTodayIds : selectedHistoryIds;
+    if (set.has(id)) set.delete(id); else set.add(id);
+    updateSelectToolbar(scope);
+    // reflect checkbox + row highlight without a full re-render
+    const entry = document.querySelector(`.log-entry[data-id="${id}"][data-scope="${scope}"]`);
+    if (entry) {
+      entry.classList.toggle('selected', set.has(id));
+      const cb = entry.querySelector('.log-checkbox');
+      if (cb) cb.checked = set.has(id);
+    }
+  }
+
+  function toggleSelectAll(scope) {
+    const list = scope === 'today' ? getTodayEntries() : getHistoryEntries();
+    const set  = scope === 'today' ? selectedTodayIds : selectedHistoryIds;
+    const allSelected = list.length > 0 && list.every(e => set.has(e.id));
+    if (allSelected) {
+      set.clear();
+    } else {
+      list.forEach(e => set.add(e.id));
+    }
+    if (scope === 'today') renderLog(); else renderHistory();
+  }
+
+  function updateSelectToolbar(scope) {
+    const set = scope === 'today' ? selectedTodayIds : selectedHistoryIds;
+    const btn = document.getElementById(`btn-delete-selected-${scope}`);
+    const countEl = document.getElementById(scope === 'today' ? 'log-selected-count' : 'history-selected-count');
+    btn.disabled = set.size === 0;
+    countEl.textContent = set.size > 0 ? `${set.size} selected` : '';
+  }
+
+  function deleteSelected(scope) {
+    const set = scope === 'today' ? selectedTodayIds : selectedHistoryIds;
+    if (set.size === 0) return;
+    const noun = set.size === 1 ? 'entry' : 'entries';
+
+    if (scope === 'today') {
+      if (!confirm(`Remove ${set.size} ${noun} from today's log? They will remain in History.`)) return;
+      entries = entries.map(e => set.has(e.id) ? { ...e, hiddenFromMain: true } : e);
+      saveEntriesToStorage();
+      exitSelectMode('today');
+      renderLog(); renderHistory();
+    } else {
+      if (!confirm(`Permanently delete ${set.size} ${noun} from History? This cannot be undone.`)) return;
+      entries = entries.filter(e => !set.has(e.id));
+      saveEntriesToStorage();
+      exitSelectMode('history');
+      renderLog(); renderHistory();
+    }
   }
 
   function escHtml(s) {
@@ -1413,24 +1856,24 @@
     return `<span class="log-pause-type" style="background:${pt.color}22;color:${pt.color};border:1px solid ${pt.color};">${pt.icon} ${escHtml(pt.label)}</span>`;
   }
 
-  function renderLog() {
-    if (!entries.length) {
-      logList.innerHTML = ''; logList.appendChild(logEmpty); logCount.textContent = ''; return;
-    }
-    logEmpty.remove();
-    logCount.textContent = entries.length + (entries.length === 1 ? ' entry' : ' entries');
+  // Renders a single entry card. `scope` is 'today' or 'history' — used to
+  // namespace selection state and DOM lookups since the same entry id can
+  // appear in both lists simultaneously.
+  function renderEntryHTML(e, scope) {
+    const selectedSet = scope === 'today' ? selectedTodayIds : selectedHistoryIds;
+    const isSelected = selectedSet.has(e.id);
+    return `
+      <div class="log-entry ${isSelected ? 'selected' : ''}" data-id="${e.id}" data-scope="${scope}">
 
-    logList.innerHTML = entries.map((e, i) => `
-      <div class="log-entry" data-idx="${i}">
-
-        <div class="log-entry-header">
-          <div class="log-timestamp">
+        <div class="log-select-row">
+          <input type="checkbox" class="log-checkbox" ${isSelected ? 'checked' : ''} onchange="toggleSelect(${e.id}, '${scope}')" aria-label="Select entry"/>
+          <div class="log-timestamp" style="flex:1;">
             <span style="color:#6b7280;">Start:</span> ${e.startedAt ? e.startedAt.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '—'}
             &nbsp;→&nbsp;
             <span style="color:#6b7280;">Stop:</span> ${e.ts.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
             &nbsp;<span style="color:#3d4251;">${e.ts.toLocaleDateString([],{month:'short',day:'numeric'})}</span>
           </div>
-          <button class="btn-edit" onclick="toggleEdit(${i})">✎ Edit</button>
+          <button class="btn-edit" onclick="toggleEdit(${e.id})">✎ Edit</button>
         </div>
 
         <!-- VIEW MODE -->
@@ -1475,13 +1918,119 @@
 
         <!-- EDIT ACTIONS -->
         <div class="log-edit-actions">
-          <button class="btn-log-save" onclick="saveEdit(${i})">✓ Save</button>
-          <button class="btn-log-cancel" onclick="cancelEdit(${i})">Cancel</button>
+          <button class="btn-log-save" onclick="saveEdit(${e.id})">✓ Save</button>
+          <button class="btn-log-cancel" onclick="cancelEdit(${e.id})">Cancel</button>
         </div>
 
       </div>
-    `).join('');
+    `;
   }
+
+  // ── TODAY LOG RENDER ─────────────────────────────────────────
+  function renderLog() {
+    const allToday = entries.filter(e => !e.hiddenFromMain && isSameDay(e.ts, new Date()));
+    const todayEntries = applyFilters(allToday, filters.today, 'today');
+    const toolbar = document.getElementById('log-select-toolbar');
+    const entryToolbar = document.getElementById('select-toolbar-entry-today');
+
+    // keep the select-mode class on the list container in sync across re-renders
+    logList.classList.toggle('select-mode', selectModeToday);
+
+    if (!allToday.length) {
+      logList.innerHTML = ''; logList.appendChild(logEmpty);
+      logEmpty.textContent = 'No entries yet today. Start a timer to log downtime.';
+      logCount.textContent = '';
+      toolbar.style.display = 'none';
+      entryToolbar.style.display = 'none';
+      return;
+    }
+
+    entryToolbar.style.display = selectModeToday ? 'none' : 'block';
+    toolbar.style.display = selectModeToday ? 'flex' : 'none';
+
+    if (!todayEntries.length) {
+      logList.innerHTML = '<div class="filter-no-results">No entries match the current filter.</div>';
+      logCount.textContent = `0 of ${allToday.length}`;
+      if (selectModeToday) updateSelectToolbar('today');
+      return;
+    }
+
+    logCount.textContent = hasActiveFilters('today')
+      ? `${todayEntries.length} of ${allToday.length}`
+      : todayEntries.length + (todayEntries.length === 1 ? ' entry' : ' entries');
+
+    logList.innerHTML = todayEntries.map(e => renderEntryHTML(e, 'today')).join('');
+    logList.classList.toggle('select-mode', selectModeToday);
+
+    if (selectModeToday) {
+      updateSelectToolbar('today');
+      const allSelected = todayEntries.length > 0 && todayEntries.every(e => selectedTodayIds.has(e.id));
+      document.getElementById('btn-select-all-today').textContent = allSelected ? 'Deselect All' : 'Select All';
+    }
+  }
+
+  // ── HISTORY RENDER (grouped by day, newest first) ────────────
+  function renderHistory() {
+    const filteredEntries = getHistoryEntries();
+    const toolbar = document.getElementById('history-select-toolbar');
+    const entryToolbar = document.getElementById('select-toolbar-entry-history');
+
+    historyList.classList.toggle('select-mode', selectModeHistory);
+
+    if (!entries.length) {
+      historyList.innerHTML = ''; historyList.appendChild(historyEmpty);
+      historyCount.textContent = '';
+      toolbar.style.display = 'none';
+      entryToolbar.style.display = 'none';
+      return;
+    }
+
+    entryToolbar.style.display = selectModeHistory ? 'none' : 'block';
+    toolbar.style.display = selectModeHistory ? 'flex' : 'none';
+
+    if (!filteredEntries.length) {
+      historyList.innerHTML = '<div class="filter-no-results">No entries match the current filter.</div>';
+      historyCount.textContent = `0 of ${entries.length}`;
+      if (selectModeHistory) updateSelectToolbar('history');
+      return;
+    }
+
+    historyCount.textContent = hasActiveFilters('history')
+      ? `${filteredEntries.length} of ${entries.length}`
+      : entries.length + (entries.length === 1 ? ' entry' : ' entries');
+
+    // group by calendar day, preserving newest-first overall order
+    const groups = [];
+    filteredEntries.forEach(e => {
+      const last = groups[groups.length - 1];
+      if (last && isSameDay(last.date, e.ts)) {
+        last.items.push(e);
+      } else {
+        groups.push({ date: e.ts, items: [e] });
+      }
+    });
+
+    const todayD = new Date();
+    const yesterdayD = new Date(); yesterdayD.setDate(yesterdayD.getDate() - 1);
+
+    historyList.innerHTML = groups.map(g => {
+      let label;
+      if (isSameDay(g.date, todayD)) label = 'Today';
+      else if (isSameDay(g.date, yesterdayD)) label = 'Yesterday';
+      else label = g.date.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' });
+
+      return `<div class="history-day-header">${label}</div>` +
+        g.items.map(e => renderEntryHTML(e, 'history')).join('');
+    }).join('');
+    historyList.classList.toggle('select-mode', selectModeHistory);
+
+    if (selectModeHistory) {
+      updateSelectToolbar('history');
+      const allSelected = filteredEntries.length > 0 && filteredEntries.every(e => selectedHistoryIds.has(e.id));
+      document.getElementById('btn-select-all-history').textContent = allSelected ? 'Deselect All' : 'Select All';
+    }
+  }
+
 
   // ── WAKE LOCK ──────────────────────────────────────────────
   async function acquireWakeLock() {
@@ -1611,6 +2160,7 @@
     renderPauseTypeSettingsList();
     renderColorSwatchPicker();
     renderPauseTypeButtons();
+    populateReasonFilterOptions();
   }
 
   function removePauseType(id) {
@@ -1621,6 +2171,15 @@
     saveSettingsToStorage();
     renderPauseTypeSettingsList();
     renderPauseTypeButtons();
+    populateReasonFilterOptions();
+    // clear any active filter referencing the now-deleted reason
+    ['today', 'history'].forEach(scope => {
+      if (filters[scope].reason === id) {
+        filters[scope].reason = '';
+        document.getElementById(`filter-reason-${scope}`).value = '';
+      }
+    });
+    renderLog(); renderHistory();
   }
 
   // ── SERVICE WORKER ────────────────────────────────────────
