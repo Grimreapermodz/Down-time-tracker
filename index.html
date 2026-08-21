@@ -834,6 +834,14 @@
     <div class="settings-note">
       Alerts and Keep Screen Awake work while this app is open on screen. If the phone locks or the app is backgrounded, Android may still pause the timer depending on the device — keep the app open in the foreground for the most reliable alerts.
     </div>
+
+    <div class="settings-header" style="margin-top:24px; margin-bottom:8px;">
+      <h2 style="font-size:13px;">App</h2>
+    </div>
+    <div class="settings-test-row" style="flex-direction:column; align-items:stretch; margin-top:0;">
+      <button class="btn-test-sound" id="btn-check-update" onclick="checkForUpdate()">⟳ Check for Update</button>
+      <div id="check-update-status" style="font-family:var(--mono); font-size:11px; color:var(--muted); margin-top:8px; min-height:14px;"></div>
+    </div>
   </div>
 </div>
 
@@ -1636,6 +1644,36 @@
     if (swReg && swReg.waiting) {
       swReg.waiting.postMessage({ type: 'SKIP_WAITING' });
     }
+  }
+
+  function checkForUpdate() {
+    const btn = document.getElementById('btn-check-update');
+    const status = document.getElementById('check-update-status');
+    if (!swReg) {
+      status.textContent = 'Service worker not ready yet — try again in a moment.';
+      return;
+    }
+    btn.disabled = true;
+    const originalText = btn.textContent;
+    btn.textContent = 'Checking…';
+    status.textContent = '';
+
+    swReg.update().then(() => {
+      // give the browser a moment to evaluate whether a new sw.js was found
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.textContent = originalText;
+        if (swReg.waiting) {
+          status.textContent = 'Update found — tap the banner at the bottom to apply.';
+        } else {
+          status.textContent = 'You\'re on the latest version.';
+        }
+      }, 800);
+    }).catch(() => {
+      btn.disabled = false;
+      btn.textContent = originalText;
+      status.textContent = 'Could not check for updates — check your connection.';
+    });
   }
 </script>
 </body>
