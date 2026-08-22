@@ -104,7 +104,7 @@
       color: var(--muted);
       margin-bottom: 8px;
     }
-    input[type="text"], textarea {
+    input[type="text"], input[type="email"], textarea {
       width: 100%;
       background: var(--bg);
       border: 1px solid var(--border);
@@ -117,7 +117,7 @@
       transition: border-color 0.15s;
       -webkit-appearance: none;
     }
-    input[type="text"]:focus, textarea:focus { border-color: var(--accent); }
+    input[type="text"]:focus, input[type="email"]:focus, textarea:focus { border-color: var(--accent); }
     textarea { resize: vertical; min-height: 80px; }
     input:disabled, textarea:disabled { opacity: 0.35; cursor: not-allowed; }
 
@@ -1366,6 +1366,45 @@
     <div class="settings-row-sub" id="qr-total-copies" style="margin-top:6px;"></div>
 
     <div class="settings-header" style="margin-top:24px; margin-bottom:8px;">
+      <h2 style="font-size:13px;">Email Log</h2>
+    </div>
+    <div class="settings-row-sub" style="margin-bottom:10px;">Sends a copy of this device's downtime log to an email address using EmailJS. Only checked while the app is open — see note below.</div>
+
+    <div class="settings-row">
+      <div>
+        <div class="settings-row-label">Enable Automatic Email</div>
+        <div class="settings-row-sub">Send a log summary automatically at the interval below</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="setting-email-enabled" onchange="onSettingsChange()"/>
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+
+    <div class="settings-row">
+      <div>
+        <div class="settings-row-label">Send Frequency</div>
+        <div class="settings-row-sub">How often to check and send while the app is open</div>
+      </div>
+      <select class="interval-select" id="setting-email-frequency" onchange="onSettingsChange()">
+        <option value="1">Every 1 hour</option>
+        <option value="2" selected>Every 2 hours</option>
+        <option value="3">Every 3 hours</option>
+        <option value="6">Every 6 hours</option>
+        <option value="12">Every 12 hours</option>
+        <option value="24">Once per day</option>
+      </select>
+    </div>
+
+    <div class="settings-row-sub" id="email-status-line" style="margin-top:4px; margin-bottom:12px;">Never sent yet</div>
+
+    <button class="btn-test-sound" id="btn-email-send-now" onclick="sendLogEmail(true)">✉ Send Now</button>
+
+    <div class="settings-note">
+      This is opportunistic, not a real scheduled send — it only checks and fires while the app is open on screen, so it will not go out at an exact time (e.g. exactly 1:00&nbsp;AM) if the app isn't open then. That's a deliberate tradeoff: a browser PWA has no reliable background execution. Sending also requires an internet connection; if offline or EmailJS fails, it fails silently and is retried the next time the app is open and the interval has elapsed.
+    </div>
+
+    <div class="settings-header" style="margin-top:24px; margin-bottom:8px;">
       <h2 style="font-size:13px;">App</h2>
     </div>
     <div class="settings-test-row" style="flex-direction:column; align-items:stretch; margin-top:0;">
@@ -1568,6 +1607,14 @@
   </div>
 
 </div>
+
+<!-- First external dependency in this app: the EmailJS browser SDK, used to
+     send downtime log emails without hosting a backend (see Settings →
+     Email Log). Everything else here is offline-first inline HTML/CSS/JS;
+     if this CDN is unreachable the script tag just fails to load and
+     emailjs stays undefined — sendLogEmail() checks for that and no-ops,
+     so it doesn't affect any other offline functionality. -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
 <script>
 // Minimal QR Code encoder, adapted from Kazuhiko Arase's qrcode-generator
@@ -1989,6 +2036,18 @@
   // ── SETTINGS / ALERTS ────────────────────────────────────────
   const PAUSE_COLOR_PALETTE = ['#9b6dff', '#4a90d9', '#e84444', '#f5a623', '#2ecc71', '#e055c3', '#5fd4c4', '#c9a227'];
 
+  // ── EMAIL (EmailJS) ────────────────────────────────────────
+  // Fill in your own EmailJS credentials here — sign up free at
+  // https://www.emailjs.com/, create an Email Service and Email Template,
+  // then paste the IDs/key it gives you below. Nothing will send until
+  // these three are replaced with real values (see README/testing notes).
+  const EMAILJS_PUBLIC_KEY  = '15lWwAoFQgjKsX7aP';
+  const EMAILJS_SERVICE_ID  = 'service_yu7x556';
+  const EMAILJS_TEMPLATE_ID = 'template_m9wa8iw';
+  // Fixed recipient for downtime log emails — not user-configurable in the
+  // Settings UI, since this is a single destination per deployment of the app.
+  const EMAIL_RECIPIENT      = 'downtimetrackerdata@gmail.com';
+
   let settings = {
     alertsEnabled: false,
     intervalMinutes: 15,
@@ -2003,7 +2062,10 @@
     requirePauseReason: false,
     alertSound: 'beep',
     qrCodes: [], // { id, line, copies }
-    nfcEnabled: false
+    nfcEnabled: false,
+    emailEnabled: false,
+    emailFrequencyHours: 2,
+    lastEmailSentAt: null // ISO string, or null if never sent
   };
   let recentLines = []; // most-recent-first array of line number strings
   let wakeLock = null;
@@ -2089,6 +2151,7 @@
   renderHistory();
   updateNfcButtonVisibility();
   autoArmNfc();
+  checkEmailAutoSend(); // opportunistic — checked once on load, then again on every saveEntry()
 
   function addRecentLine(line) {
     if (!line) return;
@@ -2361,6 +2424,7 @@
     renderRecentLines();
     clearDraftIssue();
     renderLog(); renderHistory(); resetTimer();
+    checkEmailAutoSend(); // opportunistic — no-ops unless enabled and due
   }
 
   // ── LOG EDITING ───────────────────────────────────────────
@@ -2976,6 +3040,9 @@
     document.getElementById('setting-recent-lines-enabled').checked = settings.recentLinesEnabled;
     document.getElementById('setting-recent-lines-count').value = String(settings.recentLinesCount);
     document.getElementById('setting-nfc-enabled').checked = settings.nfcEnabled;
+    document.getElementById('setting-email-enabled').checked = settings.emailEnabled;
+    document.getElementById('setting-email-frequency').value = String(settings.emailFrequencyHours);
+    renderEmailStatusLine();
     renderPauseTypeSettingsList();
     renderColorSwatchPicker();
     renderQrCodeSettingsList();
@@ -3001,6 +3068,8 @@
     settings.recentLinesEnabled = document.getElementById('setting-recent-lines-enabled').checked;
     settings.recentLinesCount   = Number(document.getElementById('setting-recent-lines-count').value);
     settings.nfcEnabled         = document.getElementById('setting-nfc-enabled').checked;
+    settings.emailEnabled       = document.getElementById('setting-email-enabled').checked;
+    settings.emailFrequencyHours = Number(document.getElementById('setting-email-frequency').value);
     saveSettingsToStorage();
 
     // apply live effects immediately
@@ -3501,6 +3570,112 @@
       for (let c = 0; c < count; c++) {
         if (modules[r][c]) ctx.fillRect((c + QUIET_ZONE) * scale, (r + QUIET_ZONE) * scale, scale, scale);
       }
+    }
+  }
+
+  // ── EMAIL LOG (EmailJS) ──────────────────────────────────────
+  // Sends a plain-text summary of downtime entries via EmailJS — see the
+  // EMAILJS_* constants near the top of this script for setup.
+
+  // Short, best-effort device/browser label pulled from the user agent.
+  // There's no accounts system in this app, so if multiple phones are
+  // running it, this is the only way the recipient can tell which device
+  // an email came from — it's not a stable or unique ID.
+  function getDeviceLabel() {
+    const ua = navigator.userAgent || '';
+    const platform = (ua.match(/\(([^)]+)\)/) || [, ''])[1].split(';')[0].trim();
+    const browser = (ua.match(/(Chrome|CriOS|Firefox|FxiOS|Safari|Edg)\/[\d.]+/) || [])[0];
+    return [platform, browser].filter(Boolean).join(' · ') || (ua ? ua.slice(0, 60) : 'Unknown device');
+  }
+
+  function renderEmailStatusLine() {
+    const el = document.getElementById('email-status-line');
+    if (!el) return;
+    el.textContent = settings.lastEmailSentAt
+      ? `Last sent: ${new Date(settings.lastEmailSentAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}`
+      : 'Never sent yet';
+  }
+
+  // Builds the plain-text email body. Uses entries since the last
+  // successful send (so an opportunistic send never leaves a gap in the
+  // log); if nothing has ever been sent, falls back to just today's
+  // entries so the very first email isn't a full history dump.
+  function buildLogEmailBody() {
+    const since = settings.lastEmailSentAt
+      ? new Date(settings.lastEmailSentAt)
+      : new Date(new Date().setHours(0, 0, 0, 0));
+    const toSend = entries
+      .filter(e => e.ts > since)
+      .slice()
+      .sort((a, b) => a.ts - b.ts); // oldest first, reads like a log
+
+    let body = `Downtime log — ${getDeviceLabel()}\n`;
+    body += `${toSend.length} entr${toSend.length === 1 ? 'y' : 'ies'} since ${since.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}\n\n`;
+
+    if (!toSend.length) {
+      body += '(No entries in this period.)\n';
+    } else {
+      toSend.forEach(e => {
+        const pt = settings.pauseTypes.find(p => p.id === e.pType);
+        body += `Line ${e.line || '—'}\n`;
+        body += `  Start: ${e.startedAt ? e.startedAt.toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : '—'}   Stop: ${e.ts.toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}\n`;
+        body += `  Downtime: ${fmt(e.down)}   Paused: ${fmt(e.pause)}   Total: ${fmt(e.total)}\n`;
+        body += `  Pause reason: ${pt ? pt.label : (e.pType || '—')}\n`;
+        body += `  Issue: ${e.issue || '(none)'}\n\n`;
+      });
+    }
+    return body;
+  }
+
+  // Checked opportunistically on saveEntry() and on initial page load — this
+  // is NOT a real scheduler. It only fires if/when the app happens to be
+  // open and the configured interval has elapsed since the last successful
+  // send. A browser PWA has no background execution once closed, so this
+  // can never guarantee an exact send time (e.g. "every day at 1am") —
+  // that's a deliberate, unavoidable tradeoff of this approach.
+  function checkEmailAutoSend() {
+    if (!settings.emailEnabled) return;
+    const dueAt = settings.lastEmailSentAt
+      ? new Date(settings.lastEmailSentAt).getTime() + settings.emailFrequencyHours * 3600000
+      : 0; // never sent — due immediately
+    if (Date.now() >= dueAt) sendLogEmail(false);
+  }
+
+  // manual=true is the Settings "Send Now" button, which always works
+  // regardless of the enable toggle and gives inline feedback via the
+  // status line. manual=false is the opportunistic auto-check and fails
+  // completely silently (console.warn only) — a background operation
+  // should never pop up errors or nag the user while they're mid-task.
+  async function sendLogEmail(manual) {
+    const statusEl = document.getElementById('email-status-line');
+
+    if (!EMAIL_RECIPIENT || EMAIL_RECIPIENT === 'YOUR_RECIPIENT_EMAIL') {
+      console.warn('EMAIL_RECIPIENT is not configured — set it near the top of the script.');
+      if (manual && statusEl) statusEl.textContent = 'Set EMAIL_RECIPIENT in the code first.';
+      return;
+    }
+    if (typeof emailjs === 'undefined') {
+      console.warn('EmailJS SDK not available — skipping log email (offline, CDN blocked, or not yet loaded).');
+      if (manual && statusEl) statusEl.textContent = 'Could not reach EmailJS — check your connection.';
+      return;
+    }
+
+    if (manual && statusEl) statusEl.textContent = 'Sending…';
+
+    try {
+      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+        to_email: EMAIL_RECIPIENT,
+        subject: `Downtime log — ${getDeviceLabel()}`,
+        message: buildLogEmailBody(),
+        device: getDeviceLabel()
+      }, EMAILJS_PUBLIC_KEY);
+
+      settings.lastEmailSentAt = new Date().toISOString();
+      saveSettingsToStorage();
+      renderEmailStatusLine();
+    } catch (err) {
+      console.warn('Log email send failed — will retry next time the app is open and due:', err);
+      if (manual && statusEl) statusEl.textContent = 'Send failed — check your connection and try again.';
     }
   }
 
