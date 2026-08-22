@@ -1225,6 +1225,12 @@
       <button class="btn-close-settings" onclick="closeSettings()">✕</button>
     </div>
 
+    <div class="settings-row" style="flex-direction:column; align-items:stretch;">
+      <div class="settings-row-label" style="margin-bottom:8px;">Device Name</div>
+      <input type="text" id="setting-device-name" placeholder="e.g. Aaron's Phone, Line 4 Tablet" maxlength="40" onchange="onSettingsChange()"/>
+      <div class="settings-row-sub" style="margin-top:6px;">Identifies this device in emailed logs, in place of the browser/OS guess</div>
+    </div>
+
     <div class="settings-row">
       <div>
         <div class="settings-row-label">Interval Alerts</div>
@@ -1293,6 +1299,10 @@
         <span class="toggle-track"></span>
       </label>
     </div>
+	
+	<div class="settings-note">
+      Alerts and Keep Screen Awake work while this app is open on screen. If the phone locks or the app is backgrounded, Alerts may not work.
+    </div>
 
     <div class="settings-row">
       <div>
@@ -1345,10 +1355,6 @@
     </div>
     <div class="color-swatch-picker" id="color-swatch-picker"></div>
 
-    <div class="settings-note">
-      Alerts and Keep Screen Awake work while this app is open on screen. If the phone locks or the app is backgrounded, Android may still pause the timer depending on the device — keep the app open in the foreground for the most reliable alerts.
-    </div>
-
     <div class="settings-header" style="margin-top:24px; margin-bottom:8px;">
       <h2 style="font-size:13px;">Line Codes (QR + NFC)</h2>
     </div>
@@ -1399,9 +1405,11 @@
     <div class="settings-row-sub" id="email-status-line" style="margin-top:4px; margin-bottom:12px;">Never sent yet</div>
 
     <button class="btn-test-sound" id="btn-email-send-now" onclick="sendLogEmail(true)">✉ Send Now</button>
-
-    <div class="settings-note">
-      This is opportunistic, not a real scheduled send — it only checks and fires while the app is open on screen, so it will not go out at an exact time (e.g. exactly 1:00&nbsp;AM) if the app isn't open then. That's a deliberate tradeoff: a browser PWA has no reliable background execution. Sending also requires an internet connection; if offline or EmailJS fails, it fails silently and is retried the next time the app is open and the interval has elapsed.
+	
+<!-- This is opportunistic, not a real scheduled send — it only checks and fires while the app is open on screen, so it will not go out at an exact time (e.g. exactly 1:00&nbsp;AM) if the app isn't open then. That's a deliberate tradeoff: a browser PWA has no reliable background execution. Sending also requires an internet connection; if offline or EmailJS fails, it fails silently and is retried the next time the app is open and the interval has elapsed. -->
+    
+	<div class="settings-note">
+      Logs are being sent as an email for development of a database. logs will try to send everytime the app opens but will only send if the time selected in the frequency has elapsed.
     </div>
 
     <div class="settings-header" style="margin-top:24px; margin-bottom:8px;">
@@ -2049,6 +2057,7 @@
   const EMAIL_RECIPIENT      = 'downtimetrackerdata@gmail.com';
 
   let settings = {
+    deviceName: '',
     alertsEnabled: false,
     intervalMinutes: 15,
     alertOnPause: false,
@@ -3031,6 +3040,7 @@
 
   // ── SETTINGS MODAL ────────────────────────────────────────
   function openSettings() {
+    document.getElementById('setting-device-name').value = settings.deviceName;
     document.getElementById('setting-alerts-enabled').checked = settings.alertsEnabled;
     document.getElementById('setting-interval').value = String(settings.intervalMinutes);
     document.getElementById('setting-alert-on-pause').checked = settings.alertOnPause;
@@ -3059,6 +3069,7 @@
   }
 
   function onSettingsChange() {
+    settings.deviceName         = document.getElementById('setting-device-name').value.trim();
     settings.alertsEnabled      = document.getElementById('setting-alerts-enabled').checked;
     settings.intervalMinutes    = Number(document.getElementById('setting-interval').value);
     settings.alertOnPause       = document.getElementById('setting-alert-on-pause').checked;
@@ -3577,11 +3588,13 @@
   // Sends a plain-text summary of downtime entries via EmailJS — see the
   // EMAILJS_* constants near the top of this script for setup.
 
-  // Short, best-effort device/browser label pulled from the user agent.
-  // There's no accounts system in this app, so if multiple phones are
-  // running it, this is the only way the recipient can tell which device
-  // an email came from — it's not a stable or unique ID.
+  // Prefers the user-set Device Name (Settings, top of the sheet); falls
+  // back to a best-effort device/browser label from the user agent if it's
+  // blank. There's no accounts system in this app, so if multiple phones
+  // are running it, this is the only way the recipient can tell which
+  // device an email came from — the UA fallback is not a stable or unique ID.
   function getDeviceLabel() {
+    if (settings.deviceName) return settings.deviceName;
     const ua = navigator.userAgent || '';
     const platform = (ua.match(/\(([^)]+)\)/) || [, ''])[1].split(';')[0].trim();
     const browser = (ua.match(/(Chrome|CriOS|Firefox|FxiOS|Safari|Edg)\/[\d.]+/) || [])[0];
