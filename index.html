@@ -310,6 +310,28 @@
       color: var(--accent);
       margin-bottom: 8px;
     }
+    .log-report-entered-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+    .log-report-checkbox {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--green);
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    .log-report-entered-row span {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .log-entry.report-entered { opacity: 0.45; }
 
     /* edit mode fields */
     .log-edit-fields { display: none; margin-bottom: 10px; }
@@ -574,7 +596,7 @@
     .log-entry {
       -webkit-user-select: none;
       user-select: none;
-      transition: background 0.15s, border-color 0.15s, transform 0.1s;
+      transition: background 0.15s, border-color 0.15s, transform 0.1s, opacity 0.15s;
     }
     .log-entry.press-active {
       background: #241417;
@@ -2125,7 +2147,8 @@
           ...e,
           ts: new Date(e.ts),
           startedAt: e.startedAt ? new Date(e.startedAt) : null,
-          hiddenFromMain: e.hiddenFromMain || false
+          hiddenFromMain: e.hiddenFromMain || false,
+          reportEntered: e.reportEntered || false
         }));
       }
     } catch(e) {}
@@ -2426,7 +2449,8 @@
       issue: issueNotes.value.trim(),
       down: downElapsed, pause: pauseElapsed, total: downElapsed + pauseElapsed,
       pType: pauseType, startedAt: startedAt, ts: new Date(),
-      hiddenFromMain: false
+      hiddenFromMain: false,
+      reportEntered: false
     });
     saveEntriesToStorage();
     addRecentLine(lineVal);
@@ -2771,6 +2795,20 @@
     }
   }
 
+  function toggleReportEntered(id) {
+    const entry = entries.find(en => en.id === id);
+    if (!entry) return;
+    entry.reportEntered = !entry.reportEntered;
+    saveEntriesToStorage();
+    // reflect the dim state everywhere this entry is rendered (it can appear
+    // in both Today and History simultaneously) without a full re-render
+    document.querySelectorAll(`.log-entry[data-id="${id}"]`).forEach(el => {
+      el.classList.toggle('report-entered', entry.reportEntered);
+      const cb = el.querySelector('.log-report-checkbox');
+      if (cb) cb.checked = entry.reportEntered;
+    });
+  }
+
   function toggleSelectAll(scope) {
     const list = scope === 'today' ? getTodayEntries() : getHistoryEntries();
     const set  = scope === 'today' ? selectedTodayIds : selectedHistoryIds;
@@ -2832,7 +2870,7 @@
     const selectedSet = scope === 'today' ? selectedTodayIds : selectedHistoryIds;
     const isSelected = selectedSet.has(e.id);
     return `
-      <div class="log-entry ${isSelected ? 'selected' : ''}" data-id="${e.id}" data-scope="${scope}">
+      <div class="log-entry ${isSelected ? 'selected' : ''} ${e.reportEntered ? 'report-entered' : ''}" data-id="${e.id}" data-scope="${scope}">
 
         <div class="log-select-row">
           <input type="checkbox" class="log-checkbox" ${isSelected ? 'checked' : ''} onchange="toggleSelect(${e.id}, '${scope}')" aria-label="Select entry"/>
@@ -2847,6 +2885,11 @@
 
         <!-- VIEW MODE -->
         <div class="log-line-view">Line ${escHtml(e.line || '—')}</div>
+
+        <label class="log-report-entered-row">
+          <input type="checkbox" class="log-report-checkbox" ${e.reportEntered ? 'checked' : ''} onchange="toggleReportEntered(${e.id})"/>
+          <span>Report Entered</span>
+        </label>
 
         <!-- EDIT MODE FIELDS -->
         <div class="log-edit-fields">
